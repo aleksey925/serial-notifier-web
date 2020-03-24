@@ -3,7 +3,8 @@ import logging.config
 
 from aiohttp import web
 
-from auth.routes import init_routes
+from auth.routes import init_routes as auth_init_routes
+from tv_show.routes import init_routes as tv_show_init_routes
 from config import get_config
 from db import init_db
 from middleware import init_middleware
@@ -12,7 +13,8 @@ from middleware import init_middleware
 async def init_app(config, middleware) -> web.Application:
     app = web.Application(middlewares=middleware)
     app['config'] = config
-    init_routes(app)
+    auth_init_routes(app)
+    tv_show_init_routes(app)
     await init_db(app)
     return app
 

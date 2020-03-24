@@ -2,6 +2,7 @@ import json
 
 import pytest
 from aiohttp import web
+from aiohttp.web_exceptions import HTTPInternalServerError
 from marshmallow import ValidationError
 
 from common.rest_api.error import (
@@ -44,11 +45,16 @@ expected_payloads = {
         'message': 'Data is not valid',
         'error_fields': {'email': ['email not valid']}
     },
+    HTTPInternalServerError(): {
+        'code': 'InternalServerError',
+        'message': 'Internal Server Error',
+        'error_fields': (),
+    },
 }
 
 _http_exc = [
     web.HTTPServerError, web.HTTPServerError, web.HTTPServerError,
-    web.HTTPBadRequest, web.HTTPBadRequest
+    web.HTTPBadRequest, web.HTTPBadRequest, HTTPInternalServerError
 ]
 expected_http_exceptions = [
     (i[0], i[1], exc)
@@ -71,7 +77,10 @@ def test_gen_http_response(exc, expected_payload, http_exc):
     return_payload = json.loads(return_exc.text)
 
     assert return_exc.__class__ == http_exc
-    assert return_payload['code'] == expected_payload['code'].value
+    if isinstance(expected_payload['code'], ErrorCodes):
+        assert return_payload['code'] == expected_payload['code'].value
+    else:
+        assert return_payload['code'] == expected_payload['code']
     assert return_payload['message'] == expected_payload['message']
     if isinstance(return_payload['error_fields'], list):
         assert tuple(return_payload['error_fields']) == (

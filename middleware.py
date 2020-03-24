@@ -12,7 +12,11 @@ async def db_session_middleware(request, handler):
 def init_middleware(config):
     middlewares = [
         db_session_middleware,
-        JWTMiddleware(config.JWT_SECRET, credentials_required=False),
+        JWTMiddleware(
+            config.JWT_SECRET,
+            request_property='user',
+            credentials_required=False,
+        ),
     ]
 
     return middlewares

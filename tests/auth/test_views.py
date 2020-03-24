@@ -7,17 +7,17 @@ import pytest
 from db import get_user_by_email
 
 VALID_LOGIN_DATA = {
-    'email': 'test@ya.ru',
+    'email': 'test1@ya.ru',
     'password': '123'
 }
 
 VALID_REG_DATA = {
-    'email': 'test@ya.ru',
+    'email': 'test1@ya.ru',
     'password': '123',
     'sex': 'male',
-    'nick': 'alex',
-    'name': 'Алексей',
-    'surname': 'Петрунник',
+    'nick': 'test1',
+    'name': 'Тест1',
+    'surname': 'ФамилияТест1',
 }
 
 TOKEN = (
@@ -66,15 +66,16 @@ async def test_login__send_email_non_existent_user__return_400(
     expected = {
         'code': 'VALIDATION_ERROR',
         'error_fields': {
-            'email': ['User with email=test@ya.ru not exists']
+            'email': [f'User with email={VALID_LOGIN_DATA["email"]} not exists']
         },
         'message': 'Data is not valid'
     }
 
     resp = await client.post('/account/login', data=data)
+    resp_json = json.loads(await resp.text())
 
     assert resp.status == 400
-    assert expected == json.loads(await resp.text())
+    assert expected == resp_json
 
 
 async def test_registration__send_valid_data__success(client, db_session):

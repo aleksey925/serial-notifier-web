@@ -3,6 +3,7 @@ from enum import Enum
 from functools import wraps
 
 from aiohttp import web
+from aiohttp import web_exceptions
 from marshmallow import ValidationError, Schema, fields
 
 from common.marshmallow.fields import EnumField
@@ -57,20 +58,28 @@ def error_handler(func):
     async def wrapper(*args, **kwargs):
         try:
             return await func(*args, **kwargs)
-        except SnBaseException as err:
+        except (SnBaseException, web_exceptions.HTTPException) as err:
             return gen_http_response(err)
         except Exception as err:
             logger.exception(
-                f'Возникла непредвиденная ошибка при выполнеии {func.__name__}'
+                f'Возникла непредвиденная ошибка при выполнении {func.__name__}'
             )
             return gen_http_response(err)
     return wrapper
 
 
+# TODO Реализовать перехват всех ошибок и делать их преобразование. Сейчас на
+#  пример не перехватываются ошибки произошедшие в middleware
 def gen_http_response(exception: Exception):
     payload = gen_error_payload(exception)
-    resp_class = MAP_ERROR_CODE_ON_HTTP_ERR.get(payload['code'])
-    return resp_class(text=error_response_schema.dumps(payload))
+    json_payload = error_response_schema.dumps(payload)
+
+    if isinstance(exception, web_exceptions.HTTPException):
+        exception.text = json_payload
+        return exception
+    else:
+        resp_class = MAP_ERROR_CODE_ON_HTTP_ERR.get(payload['code'])
+        return resp_class(text=json_payload)
 
 
 def gen_error_payload(exception: Exception) -> dict:
@@ -81,8 +90,14 @@ def gen_error_payload(exception: Exception) -> dict:
         exception.__class__, lambda i: tuple()
     )(exception)
 
-    if isinstance(exception, SnBaseException) and not error_field:
+    _exclude_exc = (SnBaseException, web_exceptions.HTTPException)
+
+    if isinstance(exception, _exclude_exc) and not error_field:
         message = str(exception)
+        if isinstance(exception, web_exceptions.HTTPException):
+            # FIXME Из-за динамического формирования кода нельзя будет в
+            #  swagger отобразить все возможные варианты кодов
+            code = exception.__class__.__name__.replace('HTTP', '')
     else:
         message = MAP_ERROR_CODE_ON_MSGS.get(code)
 
