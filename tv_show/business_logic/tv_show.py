@@ -1,10 +1,7 @@
 from db import get_user_tv_show
-from tv_show.schemas import TvShow
-
-tv_show_schema = TvShow()
 
 
-async def get_all_user_tv_show(db_session, user_id: int) -> str:
+async def get_all_user_tv_show(db_session, user_id: int) -> list:
     user_tv_show = await get_user_tv_show(db_session, user_id)
 
     data = []
@@ -16,4 +13,4 @@ async def get_all_user_tv_show(db_session, user_id: int) -> str:
             'looked': bool(rec['looked']),
         })
 
-    return tv_show_schema.dumps(data, many=True)
+    return data

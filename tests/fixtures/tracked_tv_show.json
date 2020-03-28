@@ -1,0 +1,18 @@
+[
+    {
+        "table": "models.tracked_tv_show",
+        "auto_inc_fields": [],
+        "fields": {
+            "id_user": 1,
+            "id_tv_show": 1
+        }
+    },
+    {
+        "table": "models.tracked_tv_show",
+        "auto_inc_fields": [],
+        "fields": {
+            "id_user": 1,
+            "id_tv_show": 3
+        }
+    }
+]

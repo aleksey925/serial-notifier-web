@@ -3,11 +3,12 @@ import logging.config
 import pytest
 from sqlalchemy import create_engine
 
+from common.database import create_db, drop_db, apply_migrations, load_data
+from common.jwt import get_token
 from config import get_config
 from main import init_app
-from middleware import init_middleware
-from tests.utils.db import create_db, drop_db, apply_migrations, load_data
-from tests.utils.middleware import modify_middleware
+from middleware import init_middleware, db_session_middleware
+from tests.mock.middleware import db_session_middleware_mock
 
 
 @pytest.yield_fixture(scope='session', autouse=True)
@@ -25,7 +26,10 @@ def init_test_db():
         load_data(
             db_session,
             config.FIXTURES_PATH,
-            ['test_user.json', 'test_tv_show.json', 'test_episode.json']
+            [
+                'user.json', 'tv_show.json', 'episode.json',
+                'tracked_tv_show.json', 'user_episode.json',
+            ]
         )
         tx.commit()
 
@@ -41,6 +45,11 @@ async def app():
     записанных туда во время теста
     :return: экземпляр инициализированного aiohttp приложения
     """
+    def modify_middleware(middlewares):
+        index_db_session_middleware = middlewares.index(db_session_middleware)
+        middlewares[index_db_session_middleware] = db_session_middleware_mock
+        return middlewares
+
     config = get_config()
     logging.config.dictConfig(config.LOGGING_CONFIG)
     middleware = modify_middleware(init_middleware(config))
@@ -69,3 +78,27 @@ async def client(app, aiohttp_client):
     разрабатываемому приложению
     """
     return await aiohttp_client(app)
+
+
+@pytest.fixture
+def token_user1():
+    return get_token(1)
+
+
+@pytest.fixture
+def headers_user1(token_user1):
+    return {
+        'Authorization': f'Bearer {token_user1}'
+    }
+
+
+@pytest.fixture
+def token_user2():
+    return get_token(2)
+
+
+@pytest.fixture
+def headers_user2(token_user2):
+    return {
+        'Authorization': f'Bearer {token_user2}'
+    }

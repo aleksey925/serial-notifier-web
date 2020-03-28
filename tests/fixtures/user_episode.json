@@ -1,0 +1,22 @@
+[
+    {
+        "table": "models.user_episode",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 1,
+            "id_user": 1,
+            "id_episode": 1,
+            "looked": true
+        }
+    },
+    {
+        "table": "models.user_episode",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 2,
+            "id_user": 1,
+            "id_episode": 3,
+            "looked": true
+        }
+    }
+]

@@ -76,10 +76,11 @@ def gen_http_response(exception: Exception):
 
     if isinstance(exception, web_exceptions.HTTPException):
         exception.text = json_payload
+        exception.content_type = 'application/json'
         return exception
     else:
         resp_class = MAP_ERROR_CODE_ON_HTTP_ERR.get(payload['code'])
-        return resp_class(text=json_payload)
+        return resp_class(text=json_payload, content_type='application/json')
 
 
 def gen_error_payload(exception: Exception) -> dict:

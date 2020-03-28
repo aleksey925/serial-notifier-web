@@ -7,7 +7,7 @@ from os import path
 from alembic.config import main as alembic_commands
 from sqlalchemy import create_engine
 
-from tests.utils.logger import root_logger_cleaner
+from common.logger import root_logger_cleaner
 
 
 def apply_migrations(root_dir):

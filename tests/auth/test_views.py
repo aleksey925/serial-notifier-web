@@ -7,17 +7,17 @@ import pytest
 from db import get_user_by_email
 
 VALID_LOGIN_DATA = {
-    'email': 'test1@ya.ru',
+    'email': 'dima@ya.ru',
     'password': '123'
 }
 
 VALID_REG_DATA = {
-    'email': 'test1@ya.ru',
+    'email': 'dima@ya.ru',
     'password': '123',
     'sex': 'male',
-    'nick': 'test1',
-    'name': 'Тест1',
-    'surname': 'ФамилияТест1',
+    'nick': 'dima',
+    'name': 'Дима',
+    'surname': 'Иванов',
 }
 
 TOKEN = (

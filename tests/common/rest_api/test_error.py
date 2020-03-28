@@ -76,6 +76,7 @@ def test_gen_http_response(exc, expected_payload, http_exc):
     return_exc = gen_http_response(exc)
     return_payload = json.loads(return_exc.text)
 
+    assert return_exc.content_type == 'application/json'
     assert return_exc.__class__ == http_exc
     if isinstance(expected_payload['code'], ErrorCodes):
         assert return_payload['code'] == expected_payload['code'].value
