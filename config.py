@@ -1,6 +1,6 @@
 import os
 from copy import deepcopy
-from os.path import abspath, dirname
+from os import path
 
 from dotenv import load_dotenv
 
@@ -40,7 +40,7 @@ def _init_logging_config(level: str):
 
 class BaseConfig:
     def __init__(self):
-        self.BASE_DIR = abspath(dirname(__file__))
+        self.BASE_DIR = path.abspath(path.dirname(__file__))
         self.CURRENT_ENV = os.environ.get('CURRENT_ENV', 'dev')
 
         self.LOGGER_LEVEL = 'INFO'
@@ -91,6 +91,9 @@ class TestConfig(DevConfig):
         # db
         self.DB_NAME = f'test_{self.DB_NAME}'
         self.DB_NAME_DEFAULT = 'postgres'
+
+        # test data
+        self.FIXTURES_PATH = path.join(self.BASE_DIR, 'tests', 'fixtures')
 
     @property
     def DATABASE_URI(self):

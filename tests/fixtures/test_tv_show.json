@@ -1,0 +1,32 @@
+[
+    {
+        "table": "models.tv_show",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 1,
+            "name": "Ходячие мертвецы",
+            "cover": "",
+            "description": ""
+        }
+    },
+    {
+        "table": "models.tv_show",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 2,
+            "name": "Флэш",
+            "cover": "",
+            "description": ""
+        }
+    },
+    {
+        "table": "models.tv_show",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 3,
+            "name": "Звездный путь",
+            "cover": "",
+            "description": ""
+        }
+    }
+]

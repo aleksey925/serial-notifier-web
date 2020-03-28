@@ -1,0 +1,31 @@
+[
+    {
+        "table": "models.user",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 1,
+            "nick": "test",
+            "name": "Тест",
+            "surname": "ТестоваяФамилия",
+            "sex": "male",
+            "email": "test@ya.ru",
+            "password": "$2b$12$8GsCqIkrPXe.AkXp52UB2eMayHnE630rHZ6h5k45ofbTtMjw7mocO",
+            "is_active": true,
+            "reg_date": "2020-01-01 06:59:08.299785"
+        }
+    },
+    {
+        "table": "models.user",
+        "auto_inc_fields": ["id"],
+        "fields": {"id": 2,
+            "nick": "test2",
+            "name": "Тест2",
+            "surname": "ТестоваяФамилия2",
+            "sex": "male",
+            "email": "test2@ya.ru",
+            "password": "$2b$12$8GsCqIkrPXe.AkXp52UB2eMayHnE630rHZ6h5k45ofbTtMjw7mocO",
+            "is_active": true,
+            "reg_date": "2020-01-02 06:59:08.299785"
+        }
+    }
+]

@@ -1,0 +1,52 @@
+[
+    {
+        "table": "models.episode",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 1,
+            "id_tv_show": 1,
+            "episode_number": 1,
+            "season_number": 1
+        }
+    },
+    {
+        "table": "models.episode",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 2,
+            "id_tv_show": 1,
+            "episode_number": 2,
+            "season_number": 1
+        }
+    },
+    {
+        "table": "models.episode",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 3,
+            "id_tv_show": 3,
+            "episode_number": 1,
+            "season_number": 5
+        }
+    },
+    {
+        "table": "models.episode",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 4,
+            "id_tv_show": 3,
+            "episode_number": 2,
+            "season_number": 5
+        }
+    },
+    {
+        "table": "models.episode",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 5,
+            "id_tv_show": 2,
+            "episode_number": 4,
+            "season_number": 6
+        }
+    }
+]
