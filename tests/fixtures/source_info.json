@@ -1,0 +1,20 @@
+[
+    {
+        "table": "models.source_info",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 1,
+            "site_name": "filmix",
+            "encoding": null
+        }
+    },
+    {
+        "table": "models.source_info",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 2,
+            "site_name": "seasonvar",
+            "encoding": null
+        }
+    }
+]

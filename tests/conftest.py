@@ -29,6 +29,7 @@ def init_test_db():
             [
                 'user.json', 'tv_show.json', 'episode.json',
                 'tracked_tv_show.json', 'user_episode.json',
+                'source_info.json', 'source.json',
             ]
         )
         tx.commit()
@@ -39,7 +40,7 @@ def init_test_db():
 
 
 @pytest.yield_fixture
-async def app():
+async def app(loop):
     """
     Инициализирует aiohttp приложение и реализует удаление из БД данных
     записанных туда во время теста
@@ -67,7 +68,7 @@ async def app():
 
 
 @pytest.fixture
-def db_session(app):
+async def db_session(app):
     return app['db_session']
 
 

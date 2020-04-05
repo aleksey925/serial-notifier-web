@@ -1,4 +1,5 @@
 import logging
+import typing
 from typing import Optional
 
 import asyncpgsa
@@ -6,7 +7,10 @@ from asyncpg import UniqueViolationError, Record
 from sqlalchemy import select
 
 from common.rest_api.exceptions import NotValidDataError
-from models import user, tv_show, episode, tracked_tv_show, user_episode
+from db_datacalss import SourceData
+from models import (
+    user, tv_show, episode, tracked_tv_show, user_episode, source, source_info
+)
 
 logger = logging.getLogger()
 
@@ -37,6 +41,25 @@ async def crete_user(conn, data: dict):
             f'User with {field_name}={data[field_name]} already exists',
             field_name
         )
+
+
+async def get_source_list(conn) -> typing.List[SourceData]:
+    source_stmt = select([
+        source.c.id,
+        source_info.c.site_name,
+        tv_show.c.name.label('tv_show_name'),
+        source.c.url,
+        source_info.c.encoding,
+    ]).select_from(
+        source.join(
+            source_info,
+            source_info.c.id == source.c.id_source_info
+        ).join(
+            tv_show,
+            tv_show.c.id == source.c.id_tv_show
+        )
+    )
+    return [SourceData(**src) for src in await conn.fetch(source_stmt)]
 
 
 async def get_user_tv_show(conn, user_id: int):

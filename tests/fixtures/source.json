@@ -1,0 +1,42 @@
+[
+    {
+        "table": "models.source",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 1,
+            "id_tv_show": 1,
+            "id_source_info": 1,
+            "url": "https://filmix.co/triller/112781-hodyachie-mertvetsy-seria-2019.html"
+        }
+    },
+    {
+        "table": "models.source",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 2,
+            "id_tv_show": 2,
+            "id_source_info": 1,
+            "url": "https://filmix.co/fantastiks/90379-serials-flesh-2019.html"
+        }
+    },
+    {
+        "table": "models.source",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 3,
+            "id_tv_show": 3,
+            "id_source_info": 1,
+            "url": "https://filmix.co/fantastiks/121426-sr-zvezdnyy-put-diska_2019.html"
+        }
+    },
+    {
+        "table": "models.source",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 4,
+            "id_tv_show": 2,
+            "id_source_info": 2,
+            "url": "http://seasonvar.ru/serial-22853-Flesh--6-sezon.html"
+        }
+    }
+]

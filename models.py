@@ -72,13 +72,19 @@ episode = Table(
     Column('season_number', Integer),
 )
 
+source_info = Table(
+    'source_info',
+    metadata,
+    Column('id', Integer, primary_key=True),
+    Column('site_name', Unicode(length=15), nullable=False),
+    Column('encoding', Unicode(length=10)),
+)
 
 source = Table(
     'source',
     metadata,
     Column('id', Integer, primary_key=True),
     Column('id_tv_show', Integer, ForeignKey('tv_show.id')),
-    Column('site_name', Unicode(length=15)),
-    Column('url', Unicode(length=300)),
-    Column('encoding', Unicode(length=10)),
+    Column('id_source_info', Integer, ForeignKey('source_info.id')),
+    Column('url', Unicode(length=300), nullable=False),
 )
