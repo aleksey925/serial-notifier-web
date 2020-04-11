@@ -14,7 +14,8 @@ def validate_payload(schema):
                 payload = schema.loads(await request.text())
             except ValidationError as err:
                 return web.HTTPBadRequest(
-                    text=error_response_schema.dumps(gen_error_payload(err))
+                    text=error_response_schema.dumps(gen_error_payload(err)),
+                    content_type='application/json'
                 )
             return await func(self, request, *args, payload=payload, **kwargs)
         return wrapper

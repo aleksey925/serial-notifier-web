@@ -6,6 +6,7 @@ from sqlalchemy import create_engine
 from common.database import create_db, drop_db, apply_migrations, load_data
 from common.jwt import get_token
 from config import get_config
+from db import close_db, init_db
 from main import init_app
 from middleware import init_middleware, db_session_middleware
 from tests.mock.middleware import db_session_middleware_mock
@@ -56,11 +57,14 @@ async def app(loop):
     middleware = modify_middleware(init_middleware(config))
 
     web_app = await init_app(config, middleware)
+    await init_db(web_app)
 
-    async with web_app['db_pool'].acquire() as db_session:
+    web_app.on_startup.remove(init_db)
+    web_app.on_cleanup.remove(close_db)
+
+    async with web_app['db'].acquire() as db_session:
         web_app['db_session'] = db_session
-        tx = db_session.transaction()
-        await tx.start()
+        tx = await db_session.begin()
 
         yield web_app
 

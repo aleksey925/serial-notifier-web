@@ -6,7 +6,7 @@ from aiohttp import web
 from auth.routes import init_routes as auth_init_routes
 from tv_show.routes import init_routes as tv_show_init_routes
 from config import get_config
-from db import init_db
+from db import init_db, close_db
 from middleware import init_middleware
 
 
@@ -15,7 +15,8 @@ async def init_app(config, middleware) -> web.Application:
     app['config'] = config
     auth_init_routes(app)
     tv_show_init_routes(app)
-    await init_db(app)
+    app.on_startup.append(init_db)
+    app.on_cleanup.append(close_db)
     return app
 
 

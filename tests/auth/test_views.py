@@ -72,7 +72,7 @@ async def test_login__send_email_non_existent_user__return_400(
     }
 
     resp = await client.post('/account/login', data=data)
-    resp_json = json.loads(await resp.text())
+    resp_json = await resp.json()
 
     assert resp.status == 400
     assert expected == resp_json
@@ -93,6 +93,26 @@ async def test_registration__send_valid_data__success(client, db_session):
     assert user_before is None
     assert user_after['email'] == VALID_REG_DATA['email']
     assert user_after['password'] != VALID_REG_DATA['password']
+
+
+async def test_registration__send_data_existed_user__return_validation_error(
+        client, db_session
+):
+    reg_data = copy(VALID_REG_DATA)
+    reg_data['email'] = 'test@ya.ru'
+    data = json.dumps(reg_data)
+    expected = {
+        'message': 'Data is not valid',
+        'error_fields': {
+            'email': ['User with email=test@ya.ru already exists']
+        },
+        'code': 'VALIDATION_ERROR'
+    }
+
+    resp = await client.post('/account/registration', data=data)
+
+    assert resp.status == 400
+    assert expected == await resp.json()
 
 
 @pytest.mark.parametrize(

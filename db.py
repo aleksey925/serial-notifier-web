@@ -2,8 +2,9 @@ import logging
 import typing
 from typing import Optional
 
-import asyncpgsa
-from asyncpg import UniqueViolationError, Record
+import aiopg.sa
+import psycopg2.errors
+from aiopg.sa.result import RowProxy
 from sqlalchemy import select
 
 from common.rest_api.exceptions import NotValidDataError
@@ -16,30 +17,35 @@ logger = logging.getLogger()
 
 
 async def init_db(app):
-    pool = await asyncpgsa.create_pool(dsn=app['config'].DATABASE_URI)
-    app['db_pool'] = pool
-    return pool
+    engine = await aiopg.sa.create_engine(dsn=app['config'].DATABASE_URI)
+    app['db'] = engine
+    return engine
 
 
-async def get_user_by_email(conn, email: str) -> Optional[Record]:
-    usr = await conn.fetch(
+async def close_db(app):
+    app['db'].close()
+    await app['db'].wait_closed()
+
+
+async def get_user_by_email(conn, email: str) -> Optional[RowProxy]:
+    res = await conn.execute(
         user.select().where(user.c.email == email)
     )
-    return usr[0] if usr else None
+    return await res.fetchone()
 
 
 async def crete_user(conn, data: dict):
     stmt = user.insert().values(**data)
     try:
         await conn.execute(stmt)
-    except UniqueViolationError as err:
+    except psycopg2.errors.UniqueViolation as err:
         logger.exception('Не удалось создать нового пользователя')
-        field_name = err.constraint_name \
-            .replace('user_', '') \
+        column_name = err.diag.constraint_name \
+            .replace(f'{err.diag.table_name}_', '') \
             .replace('_key', '')
         raise NotValidDataError(
-            f'User with {field_name}={data[field_name]} already exists',
-            field_name
+            f'User with {column_name}={data[column_name]} already exists',
+            column_name
         )
 
 
@@ -59,7 +65,8 @@ async def get_source_list(conn) -> typing.List[SourceData]:
             tv_show.c.id == source.c.id_tv_show
         )
     )
-    return [SourceData(**src) for src in await conn.fetch(source_stmt)]
+    res = await conn.fetch(source_stmt)
+    return [SourceData(**src) for src in await res.fetchall()]
 
 
 async def get_user_tv_show(conn, user_id: int):
@@ -97,7 +104,7 @@ async def get_user_tv_show(conn, user_id: int):
         )
     ).cte('looked_episodes')
 
-    return await conn.fetch(
+    res = await conn.execute(
         select([
             all_tv_show_stmt.c.name,
             all_tv_show_stmt.c.season_number,
@@ -110,3 +117,4 @@ async def get_user_tv_show(conn, user_id: int):
             )
         )
     )
+    return await res.fetchall()

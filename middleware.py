@@ -4,7 +4,7 @@ from aiohttp_jwt import JWTMiddleware
 
 @web.middleware
 async def db_session_middleware(request, handler):
-    async with request.app['db_pool'].acquire() as db_session:
+    async with request.app['db'].acquire() as db_session:
         request['db_session'] = db_session
         return await handler(request)
 

@@ -8,8 +8,7 @@ authors = ["Aleksey Petrunnik <petrunnik.a@mail.ru>"]
 python = "^3.8"
 aiohttp = { version = "=3.6.2", extras = [ "speedups" ] }
 sqlalchemy = "=1.3.15"
-asyncpg = "=0.20.1"
-asyncpgsa = "=0.26.1"
+aiopg = "=1.0.0"
 muffin-classy = { git = "https://github.com/ei-grad/muffin-classy.git" }
 python-dotenv = "^0.12.0"
 alembic = "=1.4.1"
