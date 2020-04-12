@@ -47,8 +47,8 @@ user_episode = Table(
     'user_episode',
     metadata,
     Column('id', Integer, primary_key=True),
-    Column('id_user', Integer, ForeignKey('user.id')),
-    Column('id_episode', Integer, ForeignKey('episode.id')),
+    Column('id_user', Integer, ForeignKey('user.id'), nullable=False),
+    Column('id_episode', Integer, ForeignKey('episode.id'), nullable=False),
     Column('looked', Boolean(), default=False),
 )
 
@@ -57,7 +57,7 @@ tv_show = Table(
     'tv_show',
     metadata,
     Column('id', Integer, primary_key=True),
-    Column('name', Unicode(150)),
+    Column('name', Unicode(150), nullable=False),
     Column('cover', Unicode(300)),
     Column('description', UnicodeText()),
 )
@@ -67,9 +67,9 @@ episode = Table(
     'episode',
     metadata,
     Column('id', Integer, primary_key=True),
-    Column('id_tv_show', Integer, ForeignKey('tv_show.id')),
-    Column('episode_number', Integer),
-    Column('season_number', Integer),
+    Column('id_tv_show', Integer, ForeignKey('tv_show.id'), nullable=False),
+    Column('episode_number', Integer, nullable=False),
+    Column('season_number', Integer, nullable=False),
 )
 
 source_info = Table(
@@ -84,7 +84,9 @@ source = Table(
     'source',
     metadata,
     Column('id', Integer, primary_key=True),
-    Column('id_tv_show', Integer, ForeignKey('tv_show.id')),
-    Column('id_source_info', Integer, ForeignKey('source_info.id')),
+    Column('id_tv_show', Integer, ForeignKey('tv_show.id'), nullable=False),
+    Column(
+        'id_source_info', Integer, ForeignKey('source_info.id'), nullable=False
+    ),
     Column('url', Unicode(length=300), nullable=False),
 )

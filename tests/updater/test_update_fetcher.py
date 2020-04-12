@@ -50,8 +50,7 @@ async def test_update_manager__new_episodes_released__db_updated(
         await db_session.execute(episode.select())
     ).fetchall()
 
-    update_manager = UpdateManager()
-    inserted_episodes = await update_manager.start(db_session)
+    inserted_episodes = await UpdateManager.start(db_session)
 
     list_episode_after = await(
         await db_session.execute(episode.select())
@@ -68,13 +67,13 @@ async def test_update_manager__not_released_new_episodes__db_not_updated(
         db_session, mocker_source_responses
 ):
     mocker_source_responses(count=2)
-    await UpdateManager().start(db_session)
+    await UpdateManager.start(db_session)
 
     list_episode_before = await(
         await db_session.execute(episode.select())
     ).fetchall()
 
-    inserted_episodes = await UpdateManager().start(db_session)
+    inserted_episodes = await UpdateManager.start(db_session)
 
     list_episode_after = await(
         await db_session.execute(episode.select())

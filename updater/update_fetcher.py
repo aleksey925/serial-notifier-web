@@ -9,7 +9,7 @@ from db import update_tv_show, get_source_list
 from db_datacalss import SourceData
 from updater.parsers import parsers
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -94,8 +94,8 @@ class UpdateFetcher:
 
 class UpdateManager:
 
+    @staticmethod
     def prepare_data_before_insert(
-            self,
             fetched_episodes: typing.Dict[str, typing.List[EpisodesStruct]]
     ) -> typing.List[dict]:
         prepared_data = []
@@ -118,11 +118,18 @@ class UpdateManager:
 
         return prepared_data
 
-    async def start(self, db_session) -> typing.Tuple[dict, ...]:
+    @classmethod
+    async def start(cls, db_session) -> typing.Tuple[dict, ...]:
+        logger.info('Запущено обновление')
         source_list = await get_source_list(db_session)
         fetcher = UpdateFetcher(source_list)
         fetched_episodes = await fetcher.start()
         inserted_episodes = await update_tv_show(
-            db_session, self.prepare_data_before_insert(fetched_episodes)
+            db_session, cls.prepare_data_before_insert(fetched_episodes)
         )
+        logger.info(
+            f'В БД была добавлена информация о {len(inserted_episodes)} новых '
+            f'сериях'
+        )
+        logger.info('Обновление завершено')
         return inserted_episodes

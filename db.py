@@ -14,7 +14,7 @@ from models import (
     user, tv_show, episode, tracked_tv_show, user_episode, source, source_info
 )
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 async def init_db(app):

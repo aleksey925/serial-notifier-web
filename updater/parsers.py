@@ -6,7 +6,7 @@ import lxml.html
 
 from updater.enumerations import SupportedSites
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def seasonvar(page: str) -> Optional[Dict[str, Union[int, List[int]]]]:

@@ -9,6 +9,7 @@ from config import get_config
 from db import close_db, init_db
 from main import init_app
 from middleware import init_middleware, db_session_middleware
+from scheduler import shutdown_scheduler, init_scheduler
 from tests.mock.middleware import db_session_middleware_mock
 
 
@@ -52,6 +53,10 @@ async def app(loop):
         middlewares[index_db_session_middleware] = db_session_middleware_mock
         return middlewares
 
+    disables_tasks = (
+        (init_db, close_db), (init_scheduler, shutdown_scheduler)
+    )
+
     config = get_config()
     logging.config.dictConfig(config.LOGGING_CONFIG)
     middleware = modify_middleware(init_middleware(config))
@@ -59,8 +64,9 @@ async def app(loop):
     web_app = await init_app(config, middleware)
     await init_db(web_app)
 
-    web_app.on_startup.remove(init_db)
-    web_app.on_cleanup.remove(close_db)
+    for init_task, shutdown_task in disables_tasks:
+        web_app.on_startup.remove(init_task)
+        web_app.on_cleanup.remove(shutdown_task)
 
     async with web_app['db'].acquire() as db_session:
         web_app['db_session'] = db_session

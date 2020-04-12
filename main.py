@@ -4,6 +4,7 @@ import logging.config
 from aiohttp import web
 
 from auth.routes import init_routes as auth_init_routes
+from scheduler import init_scheduler, shutdown_scheduler
 from tv_show.routes import init_routes as tv_show_init_routes
 from config import get_config
 from db import init_db, close_db
@@ -16,7 +17,9 @@ async def init_app(config, middleware) -> web.Application:
     auth_init_routes(app)
     tv_show_init_routes(app)
     app.on_startup.append(init_db)
+    app.on_startup.append(init_scheduler)
     app.on_cleanup.append(close_db)
+    app.on_cleanup.append(shutdown_scheduler)
     return app
 
 
