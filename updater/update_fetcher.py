@@ -1,13 +1,21 @@
 import asyncio
 import logging
 import typing
+from dataclasses import dataclass
 
 import aiohttp
 
+from db import update_tv_show, get_source_list
 from db_datacalss import SourceData
 from updater.parsers import parsers
 
 logger = logging.getLogger()
+
+
+@dataclass
+class EpisodesStruct:
+    id_tv_show: int
+    episode_info: typing.Optional[dict]
 
 
 class UpdateFetcher:
@@ -21,7 +29,7 @@ class UpdateFetcher:
             session,
             store: dict,
             site_name: str,
-            tv_show_name: str,
+            id_tv_show: int,
             url: str,
             encoding: typing.Optional[str]
     ):
@@ -35,7 +43,7 @@ class UpdateFetcher:
 
             page = await resp.text(encoding=encoding)
             store[site_name].append(
-                [tv_show_name, parsers[site_name](page)]
+                EpisodesStruct(id_tv_show, parsers[site_name](page))
             )
 
     async def _fetch_wrapper(self, semaphore, **kwargs):
@@ -66,7 +74,7 @@ class UpdateFetcher:
                         session=session,
                         store=store,
                         site_name=source.site_name,
-                        tv_show_name=source.tv_show_name,
+                        id_tv_show=source.id_tv_show,
                         url=source.url,
                         encoding=source.encoding
                     )
@@ -78,7 +86,43 @@ class UpdateFetcher:
 
             await asyncio.gather(*tasks)
 
-    async def start(self) -> dict:
-        new_episodes = {}
-        await self._wrapper_for_tasks(new_episodes)
-        return new_episodes
+    async def start(self) -> typing.Dict[str, typing.List[EpisodesStruct]]:
+        fetched_episodes = {}
+        await self._wrapper_for_tasks(fetched_episodes)
+        return fetched_episodes
+
+
+class UpdateManager:
+
+    def prepare_data_before_insert(
+            self,
+            fetched_episodes: typing.Dict[str, typing.List[EpisodesStruct]]
+    ) -> typing.List[dict]:
+        prepared_data = []
+
+        for site_name, episodes in fetched_episodes.items():
+            for ep in episodes:
+                if not ep.episode_info:
+                    continue
+
+                for episode_number in ep.episode_info['episodes']:
+                    prepared_data.append({
+                        'id': int(
+                            str(ep.id_tv_show) + str(episode_number) +
+                            str(ep.episode_info['season'])
+                        ),
+                        'id_tv_show': ep.id_tv_show,
+                        'episode_number': episode_number,
+                        'season_number': ep.episode_info['season'],
+                    })
+
+        return prepared_data
+
+    async def start(self, db_session) -> typing.Tuple[dict, ...]:
+        source_list = await get_source_list(db_session)
+        fetcher = UpdateFetcher(source_list)
+        fetched_episodes = await fetcher.start()
+        inserted_episodes = await update_tv_show(
+            db_session, self.prepare_data_before_insert(fetched_episodes)
+        )
+        return inserted_episodes

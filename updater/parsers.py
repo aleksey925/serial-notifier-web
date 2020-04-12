@@ -42,7 +42,7 @@ def seasonvar(page: str) -> Optional[Dict[str, Union[int, List[int]]]]:
     else:
         episodes = [int(extracted_episodes)]
 
-    return {'Серия': episodes, 'Сезон': season}
+    return {'episodes': episodes, 'season': season}
 
 
 def filmix(page: str) -> Optional[Dict[str, Union[int, List[int]]]]:
@@ -72,7 +72,7 @@ def filmix(page: str) -> Optional[Dict[str, Union[int, List[int]]]]:
     else:
         episodes = [int(episodes[0])]
 
-    return {'Серия': episodes, 'Сезон': season}
+    return {'episodes': episodes, 'season': season}
 
 
 def fanserials(page: str) -> Optional[Dict[str, Union[int, List[int]]]]:
@@ -107,7 +107,7 @@ def fanserials(page: str) -> Optional[Dict[str, Union[int, List[int]]]]:
     episodes = list(map(int, extracted_episode))
     season = int(extracted_season[0]) if extracted_season else 1
 
-    return {'Серия': episodes, 'Сезон': season}
+    return {'episodes': episodes, 'season': season}
 
 
 parsers = {

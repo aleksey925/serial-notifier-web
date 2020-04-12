@@ -6,6 +6,7 @@ import aiopg.sa
 import psycopg2.errors
 from aiopg.sa.result import RowProxy
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 
 from common.rest_api.exceptions import NotValidDataError
 from db_datacalss import SourceData
@@ -52,24 +53,21 @@ async def crete_user(conn, data: dict):
 async def get_source_list(conn) -> typing.List[SourceData]:
     source_stmt = select([
         source.c.id,
+        source.c.id_tv_show,
         source_info.c.site_name,
-        tv_show.c.name.label('tv_show_name'),
         source.c.url,
         source_info.c.encoding,
     ]).select_from(
         source.join(
             source_info,
             source_info.c.id == source.c.id_source_info
-        ).join(
-            tv_show,
-            tv_show.c.id == source.c.id_tv_show
         )
     )
-    res = await conn.fetch(source_stmt)
+    res = await conn.execute(source_stmt)
     return [SourceData(**src) for src in await res.fetchall()]
 
 
-async def get_user_tv_show(conn, user_id: int):
+async def get_user_tv_show(conn, user_id: int) -> typing.Tuple[dict, ...]:
     all_tv_show_stmt = select([
         tv_show.c.name,
         episode.c.id.label('episode_id'),
@@ -117,4 +115,22 @@ async def get_user_tv_show(conn, user_id: int):
             )
         )
     )
-    return await res.fetchall()
+    return tuple(dict(i) for i in await res.fetchall())
+
+
+async def update_tv_show(
+        conn,
+        fetched_episodes: typing.List[dict]
+) -> typing.Tuple[dict, ...]:
+    if not fetched_episodes:
+        return tuple()
+
+    stmt = insert(episode) \
+        .values(fetched_episodes) \
+        .on_conflict_do_nothing() \
+        .returning(
+            episode.c.id, episode.c.id_tv_show, episode.c.episode_number,
+            episode.c.season_number
+        )
+
+    return tuple(dict(i) for i in await (await conn.execute(stmt)).fetchall())

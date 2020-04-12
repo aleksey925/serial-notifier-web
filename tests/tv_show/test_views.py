@@ -19,13 +19,13 @@ async def test_tv_show_all__get_all_tracked_tv_show_with_status__success(
         },
         {
             "name": "Звездный путь",
-            "season_number": 5,
+            "season_number": 3,
             "looked": True,
             "episode_number": 1
         },
         {
             "name": "Звездный путь",
-            "season_number": 5,
+            "season_number": 3,
             "looked": False,
             "episode_number": 2
         }

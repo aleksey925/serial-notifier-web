@@ -1,49 +1,28 @@
 from aioresponses import aioresponses
 
-from db_datacalss import SourceData
-from updater.update_fetcher import UpdateFetcher
-
-source_list = [
-        SourceData(
-            id=2, site_name='filmix', tv_show_name='Сирена',
-            url='https://filmix.co/uzhasu/114812-sirena-2016.html',
-            encoding=None
-        ),
-        SourceData(
-            id=1, site_name='filmix', tv_show_name='Замок и ключ',
-            url='https://filmix.co/drama/139696-zamok-i-klyuch_2020.html',
-            encoding=None
-        ),
-        SourceData(
-            id=3, site_name='seasonvar', tv_show_name='Грань',
-            url='http://seasonvar.ru/serial-4993-Gran-5-season.html',
-            encoding=None
-        )
-    ]
+from models import episode
+from updater.update_fetcher import (
+    UpdateFetcher,
+    EpisodesStruct,
+    UpdateManager,
+)
 
 
 async def test_downloader__start_download__return_downloaded_pages(
-        shared_datadir
+        mocker_source_responses, source_list
 ):
-    list_html_name = [
-        'filmix_siren.html', 'filmix_locke_and_key.html',
-        'seasonvar_fringe.html'
-    ]
-    with aioresponses() as responses:
-        for src, file_name in zip(source_list, list_html_name):
-            html = (shared_datadir / 'tv_show_pages' / file_name).read_text()
-            responses.get(src.url, status=200, body=html)
-
-        fetcher = UpdateFetcher(source_list)
-        downloaded_pages = await fetcher.start()
+    mocker_source_responses()
+    fetcher = UpdateFetcher(source_list)
+    downloaded_pages = await fetcher.start()
 
     assert downloaded_pages == {
         'filmix': [
-            ['Сирена', {'Серия': [1, 2], 'Сезон': 3}],
-            ['Замок и ключ', {'Серия': [10], 'Сезон': 1}]
+            EpisodesStruct(3, {'episodes': [3], 'season': 3}),
+            EpisodesStruct(2, {'episodes': [15], 'season': 6}),
+            EpisodesStruct(1, {'episodes': [15], 'season': 10}),
         ],
         'seasonvar': [
-            ['Грань', {'Серия': [12, 13], 'Сезон': 5}]
+            EpisodesStruct(2, {'episodes': [15], 'season': 6})
         ]
     }
 
@@ -55,3 +34,51 @@ async def test_downloader__send_empty_source_list__return_empty_dict():
         downloaded_pages = await fetcher.start()
 
     assert downloaded_pages == {}
+
+
+async def test_update_manager__new_episodes_released__db_updated(
+        db_session, mocker_source_responses
+):
+    mocker_source_responses()
+    expect_inserted_episodes = (
+        {'id': 333, 'id_tv_show': 3, 'episode_number': 3, 'season_number': 3},
+        {'id': 2156, 'id_tv_show': 2, 'episode_number': 15, 'season_number': 6},
+        {'id': 11510, 'id_tv_show': 1, 'episode_number': 15, 'season_number': 10}
+    )
+
+    list_episode_before = await(
+        await db_session.execute(episode.select())
+    ).fetchall()
+
+    update_manager = UpdateManager()
+    inserted_episodes = await update_manager.start(db_session)
+
+    list_episode_after = await(
+        await db_session.execute(episode.select())
+    ).fetchall()
+
+    assert len(list_episode_before) == 5
+    assert len(list_episode_after) == (
+            len(list_episode_before) + len(inserted_episodes)
+    )
+    assert inserted_episodes == expect_inserted_episodes
+
+
+async def test_update_manager__not_released_new_episodes__db_not_updated(
+        db_session, mocker_source_responses
+):
+    mocker_source_responses(count=2)
+    await UpdateManager().start(db_session)
+
+    list_episode_before = await(
+        await db_session.execute(episode.select())
+    ).fetchall()
+
+    inserted_episodes = await UpdateManager().start(db_session)
+
+    list_episode_after = await(
+        await db_session.execute(episode.select())
+    ).fetchall()
+
+    assert inserted_episodes == tuple()
+    assert len(list_episode_before) == len(list_episode_after)

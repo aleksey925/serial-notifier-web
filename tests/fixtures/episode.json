@@ -1,9 +1,9 @@
 [
     {
         "table": "models.episode",
-        "auto_inc_fields": ["id"],
+        "auto_inc_fields": [],
         "fields": {
-            "id": 1,
+            "id": 111,
             "id_tv_show": 1,
             "episode_number": 1,
             "season_number": 1
@@ -11,9 +11,9 @@
     },
     {
         "table": "models.episode",
-        "auto_inc_fields": ["id"],
+        "auto_inc_fields": [],
         "fields": {
-            "id": 2,
+            "id": 121,
             "id_tv_show": 1,
             "episode_number": 2,
             "season_number": 1
@@ -21,29 +21,29 @@
     },
     {
         "table": "models.episode",
-        "auto_inc_fields": ["id"],
+        "auto_inc_fields": [],
         "fields": {
-            "id": 3,
+            "id": 313,
             "id_tv_show": 3,
             "episode_number": 1,
-            "season_number": 5
+            "season_number": 3
         }
     },
     {
         "table": "models.episode",
-        "auto_inc_fields": ["id"],
+        "auto_inc_fields": [],
         "fields": {
-            "id": 4,
+            "id": 323,
             "id_tv_show": 3,
             "episode_number": 2,
-            "season_number": 5
+            "season_number": 3
         }
     },
     {
         "table": "models.episode",
-        "auto_inc_fields": ["id"],
+        "auto_inc_fields": [],
         "fields": {
-            "id": 5,
+            "id": 246,
             "id_tv_show": 2,
             "episode_number": 4,
             "season_number": 6

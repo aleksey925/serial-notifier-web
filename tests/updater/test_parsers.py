@@ -6,14 +6,14 @@ from updater.parsers import fanserials, parsers
 
 @pytest.mark.parametrize(
     'file_name, site_name, expected_res', (
-            ('fanserials_boruto.html', SupportedSites.FANSERIALS.value, {'Серия': [132], 'Сезон': 1}),
-            ('fanserials_see.html', SupportedSites.FANSERIALS.value, {'Серия': [4], 'Сезон': 1}),
-            ('fanserials_the_purge.html', SupportedSites.FANSERIALS.value, {'Серия': [4], 'Сезон': 2}),
-            ('filmix_locke_and_key.html', SupportedSites.FILMIX.value, {'Серия': [10], 'Сезон': 1}),
-            ('filmix_siren.html', SupportedSites.FILMIX.value, {'Серия': [1, 2], 'Сезон': 3}),
-            ('seasonvar_amazing_stories.html', SupportedSites.SEASONVAR.value, {'Серия': [5], 'Сезон': 1}),
-            ('seasonvar_homeland.html', SupportedSites.SEASONVAR.value, {'Серия': [9], 'Сезон': 8}),
-            ('seasonvar_fringe.html', SupportedSites.SEASONVAR.value, {'Серия': [12, 13], 'Сезон': 5}),
+            ('fanserials_boruto.html', SupportedSites.FANSERIALS.value, {'episodes': [132], 'season': 1}),
+            ('fanserials_see.html', SupportedSites.FANSERIALS.value, {'episodes': [4], 'season': 1}),
+            ('fanserials_the_purge.html', SupportedSites.FANSERIALS.value, {'episodes': [4], 'season': 2}),
+            ('filmix_locke_and_key.html', SupportedSites.FILMIX.value, {'episodes': [10], 'season': 1}),
+            ('filmix_siren.html', SupportedSites.FILMIX.value, {'episodes': [1, 2], 'season': 3}),
+            ('seasonvar_amazing_stories.html', SupportedSites.SEASONVAR.value, {'episodes': [5], 'season': 1}),
+            ('seasonvar_homeland.html', SupportedSites.SEASONVAR.value, {'episodes': [9], 'season': 8}),
+            ('seasonvar_fringe.html', SupportedSites.SEASONVAR.value, {'episodes': [12, 13], 'season': 5}),
     )
 )
 def test_parsers__get_serial_and_episode__successfully(
