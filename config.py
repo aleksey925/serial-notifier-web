@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 from copy import deepcopy
 from os import path
@@ -42,6 +43,8 @@ class BaseConfig:
     def __init__(self):
         self.BASE_DIR = path.abspath(path.dirname(__file__))
         self.CURRENT_ENV = os.environ.get('CURRENT_ENV', 'dev')
+        self.LOCAL_MODE = bool(int(os.environ.get('LOCAL_MODE', 1)))
+        self.LOCAL_HOST = '127.0.0.1'
 
         self.LOGGER_LEVEL = 'INFO'
         self.LOGGING_CONFIG = _init_logging_config(self.LOGGER_LEVEL)
@@ -57,7 +60,7 @@ class BaseConfig:
         self.JWT_ALGORITHM = 'HS256'
 
         # db
-        self.DB_HOST = '127.0.0.1'
+        self.DB_HOST = 'db'
         self.DB_PORT = '5432'
         self.DB_USER = os.environ['POSTGRES_USER']
         self.DB_PASSWORD = os.environ['POSTGRES_PASSWORD']
@@ -79,6 +82,9 @@ class DevConfig(BaseConfig):
 
         # aiohttp
         self.DEBUG = True
+
+        # db
+        self.DB_HOST = self.LOCAL_HOST if self.LOCAL_MODE else self.DB_HOST
 
 
 class TestConfig(DevConfig):
@@ -111,6 +117,9 @@ class TestConfig(DevConfig):
 class ProdConfig(BaseConfig):
     def __init__(self):
         super().__init__()
+
+        self.COUNT_WORKERS = multiprocessing.cpu_count() * 2 + 1
+        self.GUNICORN_RELOAD = False
 
 
 config = {

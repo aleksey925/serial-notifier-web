@@ -1,9 +1,12 @@
 from functools import partial
+from multiprocessing import Value
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from updater.update_fetcher import UpdateManager
+
+_is_started = Value('b', False)
 
 
 async def update_job(app):
@@ -14,13 +17,16 @@ async def update_job(app):
 list_jobs = [
     {
         'func': update_job,
-        'trigger': CronTrigger.from_crontab('*/1 * * * *'),
+        'trigger': CronTrigger.from_crontab('*/15 * * * *'),
         'max_instances': 1,
     },
 ]
 
 
 async def init_scheduler(app):
+    if _is_started.value:
+        return
+
     scheduler = AsyncIOScheduler()
     app['scheduler'] = scheduler
 
@@ -32,6 +38,8 @@ async def init_scheduler(app):
         scheduler.add_job(func=func, **job_args)
 
     scheduler.start()
+    _is_started.value = True
+
     return scheduler
 
 
