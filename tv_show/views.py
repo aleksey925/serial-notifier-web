@@ -16,10 +16,10 @@ class TvShowView(AIOHttpView):
     @login_required
     async def all(self, request):
         user_id = request['user']['user_id']
-        json_user_tv_show = await get_all_user_tv_show(
+        user_tv_show = await get_all_user_tv_show(
             request['db_session'], user_id
         )
         return web.json_response(
-            json_user_tv_show,
-            dumps=lambda i: tv_show_schema.dumps(i, many=True)
+            {'tv_shows': user_tv_show},
+            dumps=lambda i: tv_show_schema.dumps(i)
         )
