@@ -229,3 +229,4 @@ dmypy.json
 ### Project
 .git
 .env.example
+volumes/
