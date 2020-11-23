@@ -40,7 +40,6 @@ tv_show_notification = Table(
     Column('id_episode', Integer, ForeignKey('episode.id'))
 )
 
-
 # Хранит дополнительную информацию о сериях. На пример, какие серии
 # пользователь посмотрел.
 user_episode = Table(
@@ -52,7 +51,6 @@ user_episode = Table(
     Column('looked', Boolean(), default=False),
 )
 
-
 tv_show = Table(
     'tv_show',
     metadata,
@@ -61,7 +59,6 @@ tv_show = Table(
     Column('cover', Unicode(300)),
     Column('description', UnicodeText()),
 )
-
 
 episode = Table(
     'episode',
