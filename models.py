@@ -87,3 +87,12 @@ source = Table(
     ),
     Column('url', Unicode(length=300), nullable=False),
 )
+
+telegram_acc = Table(
+    'telegram_acc',
+    metadata,
+    Column('id', Integer, primary_key=True),
+    Column('id_user', Integer, ForeignKey('user.id'), nullable=False),
+    Column('chat_id', Integer, nullable=False),
+    Column('username', Unicode(length=30), nullable=False),
+)

@@ -17,12 +17,28 @@
     {
         "table": "models.user",
         "auto_inc_fields": ["id"],
-        "fields": {"id": 2,
-            "nick": "test1",
-            "name": "Тест1",
-            "surname": "ТестоваяФамилия1",
+        "fields": {
+            "id": 2,
+            "nick": "user_without_subscribe",
+            "name": "Имя",
+            "surname": "Фамилия",
             "sex": "male",
-            "email": "test1@ya.ru",
+            "email": "test2@ya.ru",
+            "password": "$2b$12$8GsCqIkrPXe.AkXp52UB2eMayHnE630rHZ6h5k45ofbTtMjw7mocO",
+            "is_active": true,
+            "reg_date": "2020-01-02 06:59:08.299785"
+        }
+    },
+    {
+        "table": "models.user",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 3,
+            "nick": "nick3",
+            "name": "Имя",
+            "surname": "Фамилия",
+            "sex": "female",
+            "email": "user3@ya.ru",
             "password": "$2b$12$8GsCqIkrPXe.AkXp52UB2eMayHnE630rHZ6h5k45ofbTtMjw7mocO",
             "is_active": true,
             "reg_date": "2020-01-02 06:59:08.299785"

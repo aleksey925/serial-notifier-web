@@ -33,11 +33,6 @@ async def app_factory() -> web.Application:
     return await init_app(config, middleware)
 
 
-def run():
-    config = get_config()
-    app = app_factory()
-    web.run_app(app, host=config.HOST, port=config.PORT)
-
-
 if __name__ == '__main__':
-    run()
+    config = get_config()
+    web.run_app(app_factory(), host=config.HOST, port=config.PORT)

@@ -31,7 +31,7 @@ def init_test_db():
             [
                 'user.json', 'tv_show.json', 'episode.json',
                 'tracked_tv_show.json', 'user_episode.json',
-                'source_info.json', 'source.json',
+                'source_info.json', 'source.json', 'telegram_acc.json',
             ]
         )
         tx.commit()
@@ -53,9 +53,8 @@ async def app(loop):
         middlewares[index_db_session_middleware] = db_session_middleware_mock
         return middlewares
 
-    disables_tasks = (
-        (init_db, close_db), (init_scheduler, shutdown_scheduler)
-    )
+    disabled_init_tasks = (init_db, init_scheduler)
+    disabled_cleanup_tasks = (close_db, shutdown_scheduler)
 
     config = get_config()
     logging.config.dictConfig(config.LOGGING_CONFIG)
@@ -64,8 +63,10 @@ async def app(loop):
     web_app = await init_app(config, middleware)
     await init_db(web_app)
 
-    for init_task, shutdown_task in disables_tasks:
+    for init_task in disabled_init_tasks:
         web_app.on_startup.remove(init_task)
+
+    for shutdown_task in disabled_cleanup_tasks:
         web_app.on_cleanup.remove(shutdown_task)
 
     async with web_app['db'].acquire() as db_session:

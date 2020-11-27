@@ -11,4 +11,4 @@ services:
     command: bash -c "
       dockerize --wait-retry-interval 5s --timeout 100s -wait tcp://db:5432
       && alembic upgrade head
-      && python3 main.py"
+      && adev runserver /opt/app/ --host 0.0.0.0 --port 80"

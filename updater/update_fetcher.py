@@ -1,12 +1,14 @@
 import asyncio
 import logging
-import typing
+import typing as t
 from dataclasses import dataclass
 
 import aiohttp
+from sqlalchemy.dialects.postgresql import insert
 
-from db import update_tv_show, get_source_list
-from db_datacalss import SourceData
+from db import get_source_list, SourceData, UpdatedTvShow
+from models import episode
+from updater.notification.telegram import TelegramNotification
 from updater.parsers import parsers
 
 logger = logging.getLogger(__name__)
@@ -15,12 +17,12 @@ logger = logging.getLogger(__name__)
 @dataclass
 class EpisodesStruct:
     id_tv_show: int
-    episode_info: typing.Optional[dict]
+    episode_info: t.Optional[dict]
 
 
 class UpdateFetcher:
 
-    def __init__(self, source_list: typing.List[SourceData]):
+    def __init__(self, source_list: t.List[SourceData]):
         super().__init__()
         self._source_list = source_list
 
@@ -31,7 +33,7 @@ class UpdateFetcher:
             site_name: str,
             id_tv_show: int,
             url: str,
-            encoding: typing.Optional[str]
+            encoding: t.Optional[str]
     ):
         async with session.get(url, allow_redirects=True) as resp:
             if resp.status != 200:
@@ -51,14 +53,11 @@ class UpdateFetcher:
             async with semaphore:
                 await self._fetch(**kwargs)
         except ValueError:
-            logger.error(f'URL {kwargs["url"]} имеет неправильный формат')
+            logger.error(f'URL {kwargs["url"]} имеет неправильный формат', exc_info=True)
         except aiohttp.ClientConnectionError:
             logger.error(f'Невозможно установить соединение с {kwargs["url"]}')
         except Exception:
-            logger.exception(
-                f'Возникла непредвиденная ошибка при подключении к '
-                f'{kwargs["url"]}'
-            )
+            logger.exception(f'Возникла непредвиденная ошибка при подключении к {kwargs["url"]}')
 
     async def _wrapper_for_tasks(self, store: dict):
         tasks = []
@@ -86,18 +85,38 @@ class UpdateFetcher:
 
             await asyncio.gather(*tasks)
 
-    async def start(self) -> typing.Dict[str, typing.List[EpisodesStruct]]:
+    async def start(self) -> t.Dict[str, t.List[EpisodesStruct]]:
         fetched_episodes = {}
         await self._wrapper_for_tasks(fetched_episodes)
         return fetched_episodes
 
 
-class UpdateManager:
+class TvShowUpdater:
 
     @staticmethod
-    def prepare_data_before_insert(
-            fetched_episodes: typing.Dict[str, typing.List[EpisodesStruct]]
-    ) -> typing.List[dict]:
+    async def update_tv_show(conn, fetched_episodes: t.List[dict]) -> t.Tuple[UpdatedTvShow, ...]:
+        if not fetched_episodes:
+            return tuple()
+
+        stmt = (
+            insert(episode)
+            .values(fetched_episodes)
+            .on_conflict_do_nothing()
+            .returning(
+                episode.c.id, episode.c.id_tv_show, episode.c.episode_number, episode.c.season_number
+            )
+        )
+        return tuple(
+            UpdatedTvShow(
+                id_episode=i['id'],
+                id_tv_show=i['id_tv_show'],
+                episode_number=i['episode_number'],
+                season_number=i['season_number']
+            ) for i in await (await conn.execute(stmt)).fetchall()
+        )
+
+    @staticmethod
+    def prepare_data_before_insert(fetched_episodes: t.Dict[str, t.List[EpisodesStruct]]) -> t.List[dict]:
         prepared_data = []
 
         for site_name, episodes in fetched_episodes.items():
@@ -119,12 +138,12 @@ class UpdateManager:
         return prepared_data
 
     @classmethod
-    async def start(cls, db_session) -> typing.Tuple[dict, ...]:
+    async def start(cls, db_session) -> t.Tuple[UpdatedTvShow, ...]:
         logger.info('Запущено обновление')
         source_list = await get_source_list(db_session)
         fetcher = UpdateFetcher(source_list)
         fetched_episodes = await fetcher.start()
-        inserted_episodes = await update_tv_show(
+        inserted_episodes = await cls.update_tv_show(
             db_session, cls.prepare_data_before_insert(fetched_episodes)
         )
         logger.info(
@@ -133,3 +152,13 @@ class UpdateManager:
         )
         logger.info('Обновление завершено')
         return inserted_episodes
+
+
+class UpdateService:
+
+    def __init__(self, db_session):
+        self._db_session = db_session
+
+    async def start(self):
+        inserted_episodes = await TvShowUpdater.start(self._db_session)
+        await TelegramNotification(db_session=self._db_session).notify(new_episodes=inserted_episodes)

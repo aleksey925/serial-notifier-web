@@ -4,14 +4,14 @@ from multiprocessing import Value
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from updater.update_fetcher import UpdateManager
+from updater.update_fetcher import UpdateService
 
 _is_started = Value('b', False)
 
 
 async def update_job(app):
     async with app['db'].acquire() as db_session:
-        await UpdateManager.start(db_session)
+        await UpdateService(db_session).start()
 
 
 list_jobs = [

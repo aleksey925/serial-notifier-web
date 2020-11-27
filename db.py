@@ -1,15 +1,14 @@
 import logging
 import typing
+from dataclasses import dataclass
 from typing import Optional
 
 import aiopg.sa
 import psycopg2.errors
 from aiopg.sa.result import RowProxy
 from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert
 
 from common.rest_api.exceptions import NotValidDataError
-from db_datacalss import SourceData
 from models import (
     user, tv_show, episode, tracked_tv_show, user_episode, source, source_info
 )
@@ -26,6 +25,23 @@ async def init_db(app):
 async def close_db(app):
     app['db'].close()
     await app['db'].wait_closed()
+
+
+@dataclass
+class SourceData:
+    id: int
+    id_tv_show: int
+    site_name: str
+    url: str
+    encoding: typing.Optional[str] = None
+
+
+@dataclass
+class UpdatedTvShow:
+    id_episode: int
+    id_tv_show: int
+    episode_number: int
+    season_number: int
 
 
 async def get_user_by_email(conn, email: str) -> Optional[RowProxy]:
@@ -116,21 +132,3 @@ async def get_user_tv_show(conn, user_id: int) -> typing.Tuple[dict, ...]:
         )
     )
     return tuple(dict(i) for i in await res.fetchall())
-
-
-async def update_tv_show(
-        conn,
-        fetched_episodes: typing.List[dict]
-) -> typing.Tuple[dict, ...]:
-    if not fetched_episodes:
-        return tuple()
-
-    stmt = insert(episode) \
-        .values(fetched_episodes) \
-        .on_conflict_do_nothing() \
-        .returning(
-            episode.c.id, episode.c.id_tv_show, episode.c.episode_number,
-            episode.c.season_number
-        )
-
-    return tuple(dict(i) for i in await (await conn.execute(stmt)).fetchall())

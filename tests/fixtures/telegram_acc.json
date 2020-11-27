@@ -1,0 +1,32 @@
+[
+    {
+        "table": "models.telegram_acc",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 1,
+            "id_user": 1,
+            "chat_id": 564346,
+            "username": "@user1"
+        }
+    },
+    {
+        "table": "models.telegram_acc",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 2,
+            "id_user": 2,
+            "chat_id": 112685,
+            "username": "@user2"
+        }
+    },
+    {
+        "table": "models.telegram_acc",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 3,
+            "id_user": 3,
+            "chat_id": 444356,
+            "username": "@user3"
+        }
+    }
+]

@@ -28,5 +28,25 @@
             "cover": "",
             "description": ""
         }
+    },
+    {
+        "table": "models.tv_show",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 4,
+            "name": "Тьма",
+            "cover": "",
+            "description": ""
+        }
+    },
+    {
+        "table": "models.tv_show",
+        "auto_inc_fields": ["id"],
+        "fields": {
+            "id": 5,
+            "name": "Очень странные дела",
+            "cover": "",
+            "description": ""
+        }
     }
 ]
