@@ -3,7 +3,7 @@ version: '3.7'
 services:
 
   app:
-    image: serial-notifier-web:${PROD_IMAGE_TAG}
+    image: registry.gitlab.com/alex925/serial-notifier-web:${PROD_IMAGE_TAG}
     environment:
       - CURRENT_ENV=prod
     command: bash -c "
@@ -11,9 +11,9 @@ services:
       && alembic upgrade head
       && gunicorn -c gunicorn.conf.py 'main:app_factory'"
 
-  web-server:
-    restart: on-failure
-    image: nginx:1.17.1-alpine
+  nginx:
+    restart: on-failure:10
+    image: nginx:1.17.1
     ports:
       - 80:80
     links:

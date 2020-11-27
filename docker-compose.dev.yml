@@ -3,7 +3,7 @@ version: '3.7'
 services:
 
   app:
-    image: serial-notifier-web:develop
+    image: registry.gitlab.com/alex925/serial-notifier-web:develop
     environment:
       - CURRENT_ENV=dev
     volumes:
@@ -11,4 +11,4 @@ services:
     command: bash -c "
       dockerize --wait-retry-interval 5s --timeout 100s -wait tcp://db:5432
       && alembic upgrade head
-      && adev runserver /opt/app/ --host 0.0.0.0 --port 80"
+      && adev runserver /opt/app/ --host 0.0.0.0 --port 8080"
