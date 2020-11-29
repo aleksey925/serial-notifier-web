@@ -42,3 +42,13 @@ docker build --build-arg CURRENT_ENV=prod -t registry.gitlab.com/alex925/serial-
 ```
 docker push registry.gitlab.com/alex925/serial-notifier-web:v<X.X.X>
 ```
+
+Алгоритм деплоя на стенд
+
+git fetch --all --tags
+git checkout tags/v1.0.1
+git reset --hard v1.0.1
+docker pull registry.gitlab.com/alex925/serial-notifier-web:v1.0.1
+make run
+
+P.S. 1.0.1 необходимо заменить на устанавливаему версию приложения

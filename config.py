@@ -69,10 +69,6 @@ class BaseConfig:
         # TELEGRAM BOT
         self.TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
 
-        # ITSDANGEROUS
-        self.SERIALIZER_SECRET_KEY = os.environ['SERIALIZER_SECRET_KEY']
-        self.SERIALIZER_SALT = os.environ['SERIALIZER_SALT']
-
     @property
     def DATABASE_URI(self):
         return (
@@ -107,10 +103,6 @@ class TestConfig(DevConfig):
 
         # test data
         self.FIXTURES_PATH = path.join(self.BASE_DIR, 'tests', 'fixtures')
-
-        # ITSDANGEROUS
-        self.SERIALIZER_SECRET_KEY = os.environ.get('SERIALIZER_SECRET_KEY', '12345')
-        self.SERIALIZER_SALT = os.environ.get('SERIALIZER_SALT', '12345')
 
     @property
     def DATABASE_URI(self):

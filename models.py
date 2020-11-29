@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     MetaData, Table, Column, Integer, DateTime, Enum, Unicode, Boolean,
-    ForeignKey, UnicodeText
+    ForeignKey, UnicodeText, UniqueConstraint
 )
 
 metadata = MetaData()
@@ -67,6 +67,7 @@ episode = Table(
     Column('id_tv_show', Integer, ForeignKey('tv_show.id'), nullable=False),
     Column('episode_number', Integer, nullable=False),
     Column('season_number', Integer, nullable=False),
+    UniqueConstraint('id_tv_show', 'episode_number', 'season_number', name='constraint_unique_episode'),
 )
 
 source_info = Table(

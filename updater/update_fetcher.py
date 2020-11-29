@@ -126,10 +126,6 @@ class TvShowUpdater:
 
                 for episode_number in ep.episode_info['episodes']:
                     prepared_data.append({
-                        'id': int(
-                            str(ep.id_tv_show) + str(episode_number) +
-                            str(ep.episode_info['season'])
-                        ),
                         'id_tv_show': ep.id_tv_show,
                         'episode_number': episode_number,
                         'season_number': ep.episode_info['season'],
@@ -146,10 +142,7 @@ class TvShowUpdater:
         inserted_episodes = await cls.update_tv_show(
             db_session, cls.prepare_data_before_insert(fetched_episodes)
         )
-        logger.info(
-            f'В БД была добавлена информация о {len(inserted_episodes)} новых '
-            f'сериях'
-        )
+        logger.info(f'В БД была добавлена информация о {len(inserted_episodes)} новых сериях')
         logger.info('Обновление завершено')
         return inserted_episodes
 

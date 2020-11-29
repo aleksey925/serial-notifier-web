@@ -39,14 +39,12 @@ async def test_downloader__send_empty_source_list__return_empty_dict():
 
 class TestTvShowUpdater:
 
-    async def test_start__new_episodes_released__db_updated(
-            self, db_session, mocker_source_responses
-    ):
+    async def test_start__new_episodes_released__db_updated(self, db_session, mocker_source_responses):
         mocker_source_responses()
         expect_inserted_episodes = (
-            UpdatedTvShow(**{'id_episode': 333, 'id_tv_show': 3, 'episode_number': 3, 'season_number': 3}),
-            UpdatedTvShow(**{'id_episode': 2156, 'id_tv_show': 2, 'episode_number': 15, 'season_number': 6}),
-            UpdatedTvShow(**{'id_episode': 11510, 'id_tv_show': 1, 'episode_number': 15, 'season_number': 10}),
+            UpdatedTvShow(**{'id_episode': 1, 'id_tv_show': 3, 'episode_number': 3, 'season_number': 3}),
+            UpdatedTvShow(**{'id_episode': 2, 'id_tv_show': 2, 'episode_number': 15, 'season_number': 6}),
+            UpdatedTvShow(**{'id_episode': 3, 'id_tv_show': 1, 'episode_number': 15, 'season_number': 10}),
         )
 
         list_episode_before = await(
@@ -65,9 +63,7 @@ class TestTvShowUpdater:
         )
         assert inserted_episodes == expect_inserted_episodes
 
-    async def test_start__not_released_new_episodes__db_not_updated(
-            self, db_session, mocker_source_responses
-    ):
+    async def test_start__not_released_new_episodes__db_not_updated(self, db_session, mocker_source_responses):
         mocker_source_responses(count=2)
         await TvShowUpdater.start(db_session)
 
