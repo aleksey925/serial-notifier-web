@@ -1,4 +1,4 @@
-FROM serial-notifier-web:base
+FROM registry.gitlab.com/alex925/serial-notifier-web/app:base
 
 ARG CURRENT_ENV=${CURRENT_ENV}
 

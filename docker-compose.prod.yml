@@ -3,7 +3,7 @@ version: '3.7'
 services:
 
   app:
-    image: registry.gitlab.com/alex925/serial-notifier-web:${PROD_IMAGE_TAG}
+    image: registry.gitlab.com/alex925/serial-notifier-web/app:${PROD_IMAGE_TAG}
     environment:
       - CURRENT_ENV=prod
     command: bash -c "
@@ -15,7 +15,7 @@ services:
     restart: on-failure:10
     image: nginx:1.17.1
     ports:
-      - 80:80
+      - 8081:80
     links:
       - app
     volumes:

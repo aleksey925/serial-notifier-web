@@ -74,6 +74,6 @@ class TestTelegramNotification:
         looked, not_looked = keyboard.keyboard[0]
 
         assert looked.text == 'Смотрел'
-        assert looked.callback_data == '1,3,3,3,1'
+        assert looked.callback_data == 'looked 1,3,3,3,1'
         assert not_looked.text == 'Не смотрел'
-        assert not_looked.callback_data == '1,3,3,3,0'
+        assert not_looked.callback_data == 'looked 1,3,3,3,0'

@@ -3,13 +3,14 @@ version: '3.7'
 services:
 
   app:
+    image: registry.gitlab.com/alex925/serial-notifier-web/app:develop
     restart: on-failure:10
     env_file:
       - .env
     environment:
       - LOCAL_MODE=0
     ports:
-      - 8080:8080
+      - 127.0.0.1:8080:8080
     links:
       - db
     depends_on:
@@ -25,4 +26,4 @@ services:
     volumes:
       - ./volumes/db:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - 127.0.0.1:5432:5432

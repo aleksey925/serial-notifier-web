@@ -1,8 +1,8 @@
 build-base-img:
-	docker build -f ./base.Dockerfile -t registry.gitlab.com/alex925/serial-notifier-web:base .
+	docker build -f ./base.Dockerfile -t registry.gitlab.com/alex925/serial-notifier-web/app:base .
 
 build-dev-app-img:
-	docker build --build-arg CURRENT_ENV=dev -t registry.gitlab.com/alex925/serial-notifier-web:develop .
+	docker build --build-arg CURRENT_ENV=dev -t registry.gitlab.com/alex925/serial-notifier-web/app:develop .
 
 
 run-dev:
@@ -11,6 +11,9 @@ run-dev:
 
 run:
 	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+ps:
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml ps
 
 stop:
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.prod.yml stop

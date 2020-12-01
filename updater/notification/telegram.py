@@ -68,7 +68,8 @@ class TelegramNotification(BaseNotification):
 
     def _generate_keyboard(self, notif_data: NotificationData):
         callback_data = (
-            f'{notif_data.id_user},{notif_data.tv_show_id},{notif_data.episode_number},{notif_data.season_number},'
+            f'looked {notif_data.id_user},{notif_data.tv_show_id},{notif_data.episode_number},'
+            f'{notif_data.season_number},'
         )
 
         keyboard = InlineKeyboardMarkup(row_width=2)

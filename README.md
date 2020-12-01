@@ -34,13 +34,13 @@ docker login registry.gitlab.com
 Сборка релизного образа
 
 ```
-docker build --build-arg CURRENT_ENV=prod -t registry.gitlab.com/alex925/serial-notifier-web:v<X.X.X> .
+docker build --build-arg CURRENT_ENV=prod -t registry.gitlab.com/alex925/serial-notifier-web/app:v<X.X.X> .
 ```
 
 Отправка в репозитрий релизного образа
 
 ```
-docker push registry.gitlab.com/alex925/serial-notifier-web:v<X.X.X>
+docker push registry.gitlab.com/alex925/serial-notifier-web/app:v<X.X.X>
 ```
 
 Алгоритм деплоя на стенд
@@ -48,7 +48,7 @@ docker push registry.gitlab.com/alex925/serial-notifier-web:v<X.X.X>
 git fetch --all --tags
 git checkout tags/v1.0.1
 git reset --hard v1.0.1
-docker pull registry.gitlab.com/alex925/serial-notifier-web:v1.0.1
+docker pull registry.gitlab.com/alex925/serial-notifier-web/app:v1.0.1
 make run
 
 P.S. 1.0.1 необходимо заменить на устанавливаему версию приложения
