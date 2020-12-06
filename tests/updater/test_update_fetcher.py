@@ -1,3 +1,4 @@
+import pytest
 from aioresponses import aioresponses
 
 from db import UpdatedTvShow
@@ -9,9 +10,8 @@ from updater.update_fetcher import (
 )
 
 
-async def test_downloader__start_download__return_downloaded_pages(
-        mocker_source_responses, source_list
-):
+@pytest.mark.asyncio
+async def test_downloader__start_download__return_downloaded_pages(mocker_source_responses, source_list):
     mocker_source_responses()
     fetcher = UpdateFetcher(source_list)
     downloaded_pages = await fetcher.start()
@@ -28,6 +28,7 @@ async def test_downloader__start_download__return_downloaded_pages(
     }
 
 
+@pytest.mark.asyncio
 async def test_downloader__send_empty_source_list__return_empty_dict():
     src_list = []
     with aioresponses() as _:
@@ -37,6 +38,7 @@ async def test_downloader__send_empty_source_list__return_empty_dict():
     assert downloaded_pages == {}
 
 
+@pytest.mark.asyncio
 class TestTvShowUpdater:
 
     async def test_start__new_episodes_released__db_updated(self, db_session, mocker_source_responses):
@@ -47,35 +49,25 @@ class TestTvShowUpdater:
             UpdatedTvShow(**{'id_episode': 3, 'id_tv_show': 1, 'episode_number': 15, 'season_number': 10}),
         )
 
-        list_episode_before = await(
-            await db_session.execute(episode.select())
-        ).fetchall()
+        list_episode_before = await db_session.fetch_all(episode.select())
 
         inserted_episodes = await TvShowUpdater.start(db_session)
 
-        list_episode_after = await(
-            await db_session.execute(episode.select())
-        ).fetchall()
+        list_episode_after = await db_session.fetch_all(episode.select())
 
         assert len(list_episode_before) == 5
-        assert len(list_episode_after) == (
-                len(list_episode_before) + len(inserted_episodes)
-        )
+        assert len(list_episode_after) == (len(list_episode_before) + len(inserted_episodes))
         assert inserted_episodes == expect_inserted_episodes
 
     async def test_start__not_released_new_episodes__db_not_updated(self, db_session, mocker_source_responses):
         mocker_source_responses(count=2)
         await TvShowUpdater.start(db_session)
 
-        list_episode_before = await(
-            await db_session.execute(episode.select())
-        ).fetchall()
+        list_episode_before = await db_session.fetch_all(episode.select())
 
         inserted_episodes = await TvShowUpdater.start(db_session)
 
-        list_episode_after = await(
-            await db_session.execute(episode.select())
-        ).fetchall()
+        list_episode_after = await db_session.fetch_all(episode.select())
 
         assert inserted_episodes == tuple()
         assert len(list_episode_before) == len(list_episode_after)

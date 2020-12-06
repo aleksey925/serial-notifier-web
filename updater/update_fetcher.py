@@ -1,23 +1,33 @@
 import asyncio
-import logging
 import typing as t
 from dataclasses import dataclass
 
 import aiohttp
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
+from structlog import get_logger
 
-from db import get_source_list, SourceData, UpdatedTvShow
-from models import episode
+from db import UpdatedTvShow
+from models import episode, source, source_info
 from updater.notification.telegram import TelegramNotification
 from updater.parsers import parsers
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass
 class EpisodesStruct:
     id_tv_show: int
     episode_info: t.Optional[dict]
+
+
+@dataclass
+class SourceData:
+    id: int
+    id_tv_show: int
+    site_name: str
+    url: str
+    encoding: t.Optional[str] = None
 
 
 class UpdateFetcher:
@@ -37,10 +47,7 @@ class UpdateFetcher:
     ):
         async with session.get(url, allow_redirects=True) as resp:
             if resp.status != 200:
-                logger.error(
-                    f'При загрузке страницы {url} возникли проблемы, http '
-                    f'код: {resp.status}'
-                )
+                logger.warn('При загрузке страницы возникли проблемы,', url=url, status_code=resp.status)
                 return
 
             page = await resp.text(encoding=encoding)
@@ -53,11 +60,11 @@ class UpdateFetcher:
             async with semaphore:
                 await self._fetch(**kwargs)
         except ValueError:
-            logger.error(f'URL {kwargs["url"]} имеет неправильный формат', exc_info=True)
+            logger.warn(f'URL {kwargs["url"]} имеет неправильный формат', exc_info=True)
         except aiohttp.ClientConnectionError:
-            logger.error(f'Невозможно установить соединение с {kwargs["url"]}')
+            logger.warn(f'Невозможно установить соединение', url=kwargs["url"])
         except Exception:
-            logger.exception(f'Возникла непредвиденная ошибка при подключении к {kwargs["url"]}')
+            logger.warn(f'Возникла непредвиденная ошибка при подключении', url=kwargs["url"], exc_info=True)
 
     async def _wrapper_for_tasks(self, store: dict):
         tasks = []
@@ -94,6 +101,22 @@ class UpdateFetcher:
 class TvShowUpdater:
 
     @staticmethod
+    async def get_source_list(conn) -> t.List[SourceData]:
+        source_stmt = select([
+            source.c.id,
+            source.c.id_tv_show,
+            source_info.c.site_name,
+            source.c.url,
+            source_info.c.encoding,
+        ]).select_from(
+            source.join(
+                source_info,
+                source_info.c.id == source.c.id_source_info
+            )
+        )
+        return [SourceData(**src) for src in await conn.fetch_all(source_stmt)]
+
+    @staticmethod
     async def update_tv_show(conn, fetched_episodes: t.List[dict]) -> t.Tuple[UpdatedTvShow, ...]:
         if not fetched_episodes:
             return tuple()
@@ -112,7 +135,7 @@ class TvShowUpdater:
                 id_tv_show=i['id_tv_show'],
                 episode_number=i['episode_number'],
                 season_number=i['season_number']
-            ) for i in await (await conn.execute(stmt)).fetchall()
+            ) for i in await conn.fetch_all(stmt)
         )
 
     @staticmethod
@@ -136,13 +159,13 @@ class TvShowUpdater:
     @classmethod
     async def start(cls, db_session) -> t.Tuple[UpdatedTvShow, ...]:
         logger.info('Запущено обновление')
-        source_list = await get_source_list(db_session)
+        source_list = await cls.get_source_list(db_session)
         fetcher = UpdateFetcher(source_list)
         fetched_episodes = await fetcher.start()
         inserted_episodes = await cls.update_tv_show(
             db_session, cls.prepare_data_before_insert(fetched_episodes)
         )
-        logger.info(f'В БД была добавлена информация о {len(inserted_episodes)} новых сериях')
+        logger.info(f'В БД была добавлена информация о новых сериях', count_episode=len(inserted_episodes))
         logger.info('Обновление завершено')
         return inserted_episodes
 

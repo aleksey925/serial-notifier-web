@@ -1,26 +1,37 @@
+import enum
 from datetime import datetime
 
 from sqlalchemy import (
-    MetaData, Table, Column, Integer, DateTime, Enum, Unicode, Boolean, ForeignKey, UnicodeText, UniqueConstraint
+    Table, Column, Integer, DateTime, Enum as SaEnum, Unicode, Boolean, ForeignKey, UnicodeText,
+    UniqueConstraint
 )
+from sqlalchemy.ext.declarative import declarative_base
 
-metadata = MetaData()
+Base = declarative_base()
+metadata = Base.metadata
 
-SEX = ('male', 'female')
 
-user = Table(
-    'user',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('sex', Enum(*SEX, name='sex')),
-    Column('nick', Unicode(length=50), unique=True, nullable=False),
-    Column('name', Unicode(length=50)),
-    Column('surname', Unicode(length=50),),
-    Column('password', Unicode(length=70), nullable=False),
-    Column('email', Unicode(length=80), unique=True, nullable=False),
-    Column('is_active', Boolean, default=True),
-    Column('reg_date', DateTime(timezone=True), default=datetime.now()),
-)
+class Sex(enum.Enum):
+    MALE = 'male'
+    FEMALE = 'female'
+
+
+class User(Base):
+    __tablename__ = 'user'
+
+    id = Column(Integer, primary_key=True)
+    sex = Column(SaEnum(*[i.value for i in Sex], name='sex'))
+    nick = Column(Unicode(length=50), unique=True, nullable=False)
+    name = Column(Unicode(length=50))
+    surname = Column(Unicode(length=50))
+    password = Column(Unicode(length=70), nullable=False)
+    email = Column(Unicode(length=80), unique=True, nullable=False)
+    is_active = Column(Boolean, default=True)
+    reg_date = Column(DateTime(timezone=True), default=datetime.now())
+
+
+user_table = User.__table__
+
 
 # Хранит информацию о том какие сериалы отслеживает пользователь
 tracked_tv_show = Table(

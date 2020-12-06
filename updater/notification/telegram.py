@@ -1,9 +1,9 @@
 import asyncio
-import logging
 import typing as t
 from dataclasses import dataclass
 
 from sqlalchemy import select, and_
+from structlog import get_logger
 from telebot import TeleBot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -12,7 +12,7 @@ from db import UpdatedTvShow
 from models import telegram_acc, tracked_tv_show, tv_show, episode
 from updater.notification.base import BaseNotification
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -53,7 +53,6 @@ class TelegramNotification(BaseNotification):
                 )
             )
         )
-        res = await self._db_session.execute(tracked_tv_show_stmt)
         return (
             NotificationData(
                 tv_show_id=i.id,
@@ -63,7 +62,7 @@ class TelegramNotification(BaseNotification):
                 id_user=i.id_user,
                 chat_id=i.chat_id,
             )
-            for i in await res.fetchall()
+            for i in await self._db_session.fetch_all(tracked_tv_show_stmt)
         )
 
     def _generate_keyboard(self, notif_data: NotificationData):

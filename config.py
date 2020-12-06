@@ -1,42 +1,8 @@
-import multiprocessing
 import os
-from copy import deepcopy
 from os import path
 
 from dotenv import load_dotenv
-
-_LOGGING_CONFIG = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'standard': {
-            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-        },
-    },
-    'handlers': {
-        'default': {
-            'level': 'INFO',
-            'formatter': 'standard',
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://sys.stdout',
-        },
-    },
-    'loggers': {
-        # root logger
-        '': {
-            'handlers': ['default'],
-            'level': 'WARNING',
-            'propagate': False
-        },
-    }
-}
-
-
-def _init_logging_config(level: str):
-    logging_conf = deepcopy(_LOGGING_CONFIG)
-    logging_conf['handlers']['default']['level'] = level
-    logging_conf['loggers']['']['level'] = level
-    return logging_conf
+from jose.constants import ALGORITHMS
 
 
 class BaseConfig:
@@ -46,22 +12,14 @@ class BaseConfig:
         self.LOCAL_MODE = bool(int(os.environ.get('LOCAL_MODE', 1)))
         self.LOCAL_HOST = '127.0.0.1'
 
-        self.LOGGER_LEVEL = 'INFO'
-        self.LOGGING_CONFIG = _init_logging_config(self.LOGGER_LEVEL)
-
-        # aiohttp
-        self.HOST = '0.0.0.0'
-        self.PORT = 8080
-        self.IS_DEBUG = False
-
         # JWT
         self.JWT_SECRET = os.environ['JWT_SECRET']
         self.JWT_EXP_DELTA_MIN = 60
-        self.JWT_ALGORITHM = 'HS256'
+        self.JWT_ALGORITHM = ALGORITHMS.HS256
 
         # db
-        self.DB_HOST = 'db'
-        self.DB_PORT = '5432'
+        self.DB_HOST = os.environ.get('POSTGRES_HOST', 'db')
+        self.DB_PORT = os.environ.get('POSTGRES_PORT', '5432')
         self.DB_USER = os.environ['POSTGRES_USER']
         self.DB_PASSWORD = os.environ['POSTGRES_PASSWORD']
         self.DB_NAME = os.environ['POSTGRES_DB']
@@ -72,19 +30,13 @@ class BaseConfig:
     @property
     def DATABASE_URI(self):
         return (
-            f'postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
+            f'postgresql+aiopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
         )
 
 
 class DevConfig(BaseConfig):
     def __init__(self):
         super().__init__()
-
-        self.LOGGER_LEVEL = 'DEBUG'
-        self.LOGGING_CONFIG = _init_logging_config(self.LOGGER_LEVEL)
-
-        # aiohttp
-        self.DEBUG = True
 
         # db
         self.DB_HOST = self.LOCAL_HOST if self.LOCAL_MODE else self.DB_HOST
@@ -93,9 +45,6 @@ class DevConfig(BaseConfig):
 class TestConfig(DevConfig):
     def __init__(self):
         super().__init__()
-
-        self.LOGGER_LEVEL = 'DEBUG'
-        self.LOGGING_CONFIG = _init_logging_config(self.LOGGER_LEVEL)
 
         # db
         self.DB_NAME = f'test_{self.DB_NAME}'
@@ -107,7 +56,7 @@ class TestConfig(DevConfig):
     @property
     def DATABASE_URI(self):
         return (
-            f'postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
+            f'postgresql+aiopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
         )
 
     @property
@@ -120,9 +69,6 @@ class TestConfig(DevConfig):
 class ProdConfig(BaseConfig):
     def __init__(self):
         super().__init__()
-
-        self.COUNT_WORKERS = multiprocessing.cpu_count() * 2 + 1
-        self.GUNICORN_RELOAD = False
 
 
 config = {

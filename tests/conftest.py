@@ -1,16 +1,13 @@
-import logging.config
-
 import pytest
+from aiohttp.test_utils import TestClient
+from httpx import AsyncClient
 from sqlalchemy import create_engine
 
+from auth.security import create_access_token
 from common.database import create_db, drop_db, apply_migrations, load_data
-from common.jwt import get_token
 from config import get_config
-from db import close_db, init_db
-from main import init_app
-from middleware import init_middleware, db_session_middleware
-from scheduler import shutdown_scheduler, init_scheduler
-from tests.mock.middleware import db_session_middleware_mock
+from db import close_db, init_db, get_db
+from main import app_factory
 
 
 @pytest.yield_fixture(scope='session', autouse=True)
@@ -23,7 +20,7 @@ def init_test_db():
     create_db(config.DATABASE_DEFAULT_URI, config.DB_NAME)
     apply_migrations(config.BASE_DIR)
 
-    with create_engine(config.DATABASE_URI).connect() as db_session:
+    with create_engine(config.DATABASE_URI.replace('+aiopg', '')).connect() as db_session:
         tx = db_session.begin()
         load_data(
             db_session,
@@ -42,59 +39,43 @@ def init_test_db():
 
 
 @pytest.yield_fixture
-async def app(loop):
+async def app():
     """
     Инициализирует aiohttp приложение и реализует удаление из БД данных
     записанных туда во время теста
     :return: экземпляр инициализированного aiohttp приложения
     """
-    def modify_middleware(middlewares):
-        index_db_session_middleware = middlewares.index(db_session_middleware)
-        middlewares[index_db_session_middleware] = db_session_middleware_mock
-        return middlewares
+    application = app_factory(app_event=lambda *args, **kwargs: None)
+    await init_db()
 
-    disabled_init_tasks = (init_db, init_scheduler)
-    disabled_cleanup_tasks = (close_db, shutdown_scheduler)
+    yield application
 
-    config = get_config()
-    logging.config.dictConfig(config.LOGGING_CONFIG)
-    middleware = modify_middleware(init_middleware(config))
-
-    web_app = await init_app(config, middleware)
-    await init_db(web_app)
-
-    for init_task in disabled_init_tasks:
-        web_app.on_startup.remove(init_task)
-
-    for shutdown_task in disabled_cleanup_tasks:
-        web_app.on_cleanup.remove(shutdown_task)
-
-    async with web_app['db'].acquire() as db_session:
-        web_app['db_session'] = db_session
-        tx = await db_session.begin()
-
-        yield web_app
-
-        await tx.rollback()
+    await close_db()
 
 
 @pytest.fixture
 async def db_session(app):
-    return app['db_session']
+    return get_db()
 
 
 @pytest.fixture
-async def client(app, aiohttp_client):
+def client(app, aiohttp_client):
     """
     Инициализирует клиент позволяющий выполнять HTTP запросы к
     разрабатываемому приложению
     """
-    return await aiohttp_client(app)
+    return TestClient(app)
+
+
+@pytest.yield_fixture
+async def async_client(app):
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        yield ac
 
 
 @pytest.fixture
 def token_user1():
-    return get_token(1)
+    return create_access_token({'user_id': 1})
 
 
 @pytest.fixture
@@ -106,7 +87,7 @@ def headers_user1(token_user1):
 
 @pytest.fixture
 def token_user2():
-    return get_token(2)
+    return create_access_token({'user_id': 2})
 
 
 @pytest.fixture

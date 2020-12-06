@@ -1,4 +1,4 @@
 def init_routes(app):
-    from tv_show.views import TvShowView
+    from tv_show.views import router
 
-    TvShowView.register(app, '/tv_show')
+    app.include_router(router)

@@ -10,4 +10,4 @@ services:
     command: bash -c "
       dockerize --wait-retry-interval 5s --timeout 100s -wait tcp://db:5432
       && alembic upgrade head
-      && adev runserver /opt/app/ --host 0.0.0.0 --port 8080"
+      && uvicorn wsgi:app --reload --host 0.0.0.0 --port ${APP_PORT}"
