@@ -87,10 +87,14 @@ class TelegramNotification(BaseNotification):
                 bot.send_message(notif.chat_id, msg, reply_markup=self._generate_keyboard(notif))
             except Exception:
                 logger.error(
-                    f'Возникла ошибка при отправке уведомления через телеграм msg={msg} chat_id={notif.chat_id}'
+                    'Возникла ошибка при отправке уведомления через телеграм', msg=msg, chat_id=notif.chat_id
                 )
 
     async def notify(self, new_episodes: t.Tuple[UpdatedTvShow, ...]):
+        if not new_episodes:
+            return
+
+        logger.info('Начинаем рассылать уведомления через telegram', new_episodes=new_episodes)
         notifications = await self._get_notification_data(new_episodes)
         await asyncio.get_event_loop().run_in_executor(
             None, lambda: self._send(notifications)

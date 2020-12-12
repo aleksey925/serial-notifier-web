@@ -32,7 +32,7 @@ async def reg_new_user(payload: RegistrationReqSchema):
                 {
                     'loc': ['body', exc.not_unique_field],
                     'msg': 'Not unique value',
-                    "type": "value_error.not_unique",
+                    'type': 'value_error.not_unique',
                 }
             ]
         )

@@ -47,10 +47,10 @@ class AccountService:
             usr = await self.db.query(User).filter(User.email == email).one()
         except sqlalchemy.orm.exc.NoResultFound:
             logger.info('Пользователь не существует, авторизация невозможна', email=email)
-            raise CredentialsNotValid(f'User not exists')
+            raise CredentialsNotValid('User not exists')
 
         if not check_password(password, usr.password):
-            logger.info('Введеный пароль не валиден', email=email)
+            logger.info('Введенный пароль не валиден', email=email)
             raise CredentialsNotValid('The password entered is not correct')
 
         return usr

@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from structlog import get_logger
 
-from db import UpdatedTvShow
+from db import UpdatedTvShow, get_db
 from models import episode, source, source_info
 from updater.notification.telegram import TelegramNotification
 from updater.parsers import parsers
@@ -172,8 +172,8 @@ class TvShowUpdater:
 
 class UpdateService:
 
-    def __init__(self, db_session):
-        self._db_session = db_session
+    def __init__(self):
+        self._db_session = get_db()
 
     async def start(self):
         inserted_episodes = await TvShowUpdater.start(self._db_session)

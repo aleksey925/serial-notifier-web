@@ -52,7 +52,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: OMDatabase =
 
     usr = await db.query(User).filter(User.id == user_id).one()
     if usr is None:
-        logger.warn('Пользователь не был найден, авторизация не возможна', user_id=user_id, exc_info=True)
+        logger.warn('Пользователь не был найден, авторизация невозможна', user_id=user_id, exc_info=True)
         raise credentials_exception
 
     return usr

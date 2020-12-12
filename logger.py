@@ -3,8 +3,6 @@ import logging.handlers
 
 import structlog
 
-from config import BaseConfig
-
 # Порядок процессоров не менять без явной необходимости
 simple_processors = [
     structlog.stdlib.filter_by_level,
@@ -37,7 +35,6 @@ def _init_logging(default_formatter):
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(default_formatter)
 
-    # Регистрация хэндлеров
     root_logger.addHandler(console_handler)
 
 

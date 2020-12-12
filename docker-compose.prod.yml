@@ -7,9 +7,17 @@ services:
     environment:
       - CURRENT_ENV=prod
     command: bash -c "
-      dockerize --wait-retry-interval 5s --timeout 100s -wait tcp://db:5432
+      dockerize --wait-retry-interval 5s --timeout 100s -wait tcp://db:${POSTGRES_PORT}
       && alembic upgrade head
       && gunicorn -c ./gunicorn_conf.py wsgi:app"
+
+  scheduler:
+    image: registry.gitlab.com/alex925/serial-notifier-web/app:${PROD_IMAGE_TAG}
+    environment:
+      - CURRENT_ENV=prod
+    command: bash -c "
+      dockerize --wait-retry-interval 5s --timeout 100s -wait tcp://db:${POSTGRES_PORT}
+      && python ./scheduler.py"
 
   nginx:
     restart: on-failure:10

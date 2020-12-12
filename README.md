@@ -51,4 +51,4 @@ git reset --hard v1.0.1
 docker pull registry.gitlab.com/alex925/serial-notifier-web/app:v1.0.1
 make run
 
-P.S. 1.0.1 необходимо заменить на устанавливаему версию приложения
+P.S. 1.0.1 необходимо заменить на устанавливаемую версию приложения

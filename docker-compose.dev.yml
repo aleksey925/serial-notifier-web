@@ -8,6 +8,15 @@ services:
     volumes:
       - .:/opt/app/
     command: bash -c "
-      dockerize --wait-retry-interval 5s --timeout 100s -wait tcp://db:5432
+      dockerize --wait-retry-interval 5s --timeout 100s -wait tcp://db:${POSTGRES_PORT}
       && alembic upgrade head
       && uvicorn wsgi:app --reload --host 0.0.0.0 --port ${APP_PORT}"
+
+  scheduler:
+    environment:
+      - CURRENT_ENV=dev
+    volumes:
+      - .:/opt/app/
+    command: bash -c "
+      dockerize --wait-retry-interval 5s --timeout 100s -wait tcp://db:${POSTGRES_PORT}
+      && python ./scheduler.py"

@@ -10,10 +10,10 @@ run-dev:
 
 
 run:
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.override.yml up -d
 
 ps:
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml ps
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.override.yml ps
 
 stop:
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.prod.yml stop
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.prod.yml -f docker-compose.override.yml stop
