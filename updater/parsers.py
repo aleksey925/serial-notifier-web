@@ -1,25 +1,22 @@
-import logging
 import re
 from typing import Dict, Union, List, Optional
 
 import lxml.html
+from structlog import get_logger
 
-from updater.enumerations import SupportedSites
+from updater.enums import SupportedSites
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def seasonvar(page: str) -> Optional[Dict[str, Union[int, List[int]]]]:
     parser = lxml.html.fromstring(page)
 
     try:
-        last_season_row_elem = parser.cssselect(
-            'ul.tabs-result > li > h2:last-child a'
-        )[0]
+        last_season_row_elem = parser.cssselect('ul.tabs-result > li > h2:last-child a')[0]
     except IndexError:
         logger.warning(
-            'На сайте seasonvar не удалсь найти блок хранящий информацию о '
-            'последней серии'
+            'На сайте seasonvar не удалсь найти блок хранящий информацию о последней серии'
         )
         return
 
@@ -30,7 +27,7 @@ def seasonvar(page: str) -> Optional[Dict[str, Union[int, List[int]]]]:
         episodes_raw = last_season_row_elem.cssselect('span')[0].text
         extracted_episodes = re.findall(
             '(\d+-{0,1}\d{0,}) серия.{0,}\)',
-            episodes_raw
+            episodes_raw,
         )[0]
     except IndexError:
         logger.warning('Не удалось извлечь информацию о сериях')
@@ -82,8 +79,7 @@ def fanserials(page: str) -> Optional[Dict[str, Union[int, List[int]]]]:
         last_episode_elem = parser.cssselect('#episode_list li')[0]
     except IndexError:
         logger.warning(
-            'На сайте fanserials не удалсь найти блок хранящий информацию о '
-            'последней серии'
+            'На сайте fanserials не удалсь найти блок хранящий информацию о последней серии'
         )
         return
 

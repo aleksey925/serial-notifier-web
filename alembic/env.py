@@ -1,19 +1,15 @@
 import sys
 from logging.config import fileConfig
-from os.path import realpath, dirname, join
+from pathlib import Path
 
 from alembic import context
-from sqlalchemy import create_engine
+from sqlalchemy import engine_from_config, pool
 
 # fix ModuleNotFoundError exception
-sys.path.insert(0, realpath(join(dirname(__file__), '..')))
+sys.path.insert(0, str(Path(__file__).parent.parent.absolute()))
 
 import config as app_config
 import models
-
-
-def get_url():
-    return app_config.get_config().DATABASE_URI
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -27,12 +23,16 @@ fileConfig(config.config_file_name, disable_existing_loggers=False)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = models.metadata
+target_metadata = models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+config.set_main_option(
+    'sqlalchemy.url',
+    app_config.get_config().DATABASE_URI.replace('postgresql+aiopg', 'postgresql')
+)
 
 
 def run_migrations_offline():
@@ -47,10 +47,12 @@ def run_migrations_offline():
     script output.
 
     """
-    url = get_url()
+    url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url, target_metadata=target_metadata, literal_binds=True,
-        render_as_batch=url.startswith('sqlite')
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
     )
 
     with context.begin_transaction():
@@ -64,13 +66,17 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    url = get_url()
-    connectable = create_engine(url)
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata,
-            render_as_batch=url.startswith('sqlite')
+            connection=connection,
+            target_metadata=target_metadata,
+            render_as_batch=connectable.url.drivername == 'sqlite'
         )
 
         with context.begin_transaction():

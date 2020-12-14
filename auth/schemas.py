@@ -1,20 +1,34 @@
-from marshmallow import Schema, fields, validate
+import typing as t
 
-from models import SEX
+from pydantic import Field
+from pydantic.main import BaseModel
 
-
-class LoginSchema(Schema):
-    email = fields.Email(required=True)
-    password = fields.String(required=True, validate=validate.Length(min=3))
+from models import Sex
 
 
-class RegistrationSchema(Schema):
-    email = fields.Email(required=True)
-    password = fields.String(required=True)
-    sex = fields.String(validate=validate.OneOf(choices=SEX), allow_none=True)
-    nick = fields.String(
-        required=True,
-        validate=validate.Length(min=3, max=50)
-    )
-    name = fields.String(validate=validate.Length(max=50), allow_none=True)
-    surname = fields.String(validate=validate.Length(max=50), allow_none=True)
+class LoginReqSchema(BaseModel):
+    email: str = Field(regex='.*@.*', description='email пользователя')
+    password: str = Field(min_length=3, description='пароль пользователя')
+
+
+class TokenRespSchema(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class RegistrationReqSchema(BaseModel):
+    email: str = Field(regex='.*@.*', description='email пользователя')
+    password: str = Field(min_length=3, description='пароль пользователя')
+    sex: t.Optional[Sex]
+    nick: str = Field(min_length=3, max_length=50)
+    name: t.Optional[str] = Field(max_length=50)
+    surname: t.Optional[str] = Field(max_length=50)
+
+
+class RegistrationRespSchema(BaseModel):
+    id: int
+    email: str = Field(description='email пользователя')
+    sex: t.Optional[Sex]
+    nick: str = Field(min_length=3, max_length=50)
+    name: t.Optional[str] = Field(max_length=50)
+    surname: t.Optional[str] = Field(max_length=50)

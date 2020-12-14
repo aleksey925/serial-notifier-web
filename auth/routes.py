@@ -1,4 +1,4 @@
 def init_routes(app):
-    from auth.views import AccountView
+    from auth.views import router
 
-    AccountView.register(app, '/account')
+    app.include_router(router)

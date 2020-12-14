@@ -1,6 +1,6 @@
 import pytest
 
-from updater.enumerations import SupportedSites
+from updater.enums import SupportedSites
 from updater.parsers import fanserials, parsers
 
 
