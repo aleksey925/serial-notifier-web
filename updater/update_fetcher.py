@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 from structlog import get_logger
 
 from db import UpdatedTvShow, get_db
-from models import episode, source, source_info
+from models import episode_table, source_table, source_info_table
 from updater.notification.telegram import TelegramNotification
 from updater.parsers import parsers
 
@@ -87,7 +87,7 @@ class UpdateFetcher:
                 )
 
             if not tasks:
-                logger.debug('Нет сериалов для отслежвания')
+                logger.debug('Нет сериалов для отслеживания')
                 return
 
             await asyncio.gather(*tasks)
@@ -103,15 +103,15 @@ class TvShowUpdater:
     @staticmethod
     async def get_source_list(conn) -> t.List[SourceData]:
         source_stmt = select([
-            source.c.id,
-            source.c.id_tv_show,
-            source_info.c.site_name,
-            source.c.url,
-            source_info.c.encoding,
+            source_table.c.id,
+            source_table.c.id_tv_show,
+            source_info_table.c.site_name,
+            source_table.c.url,
+            source_info_table.c.encoding,
         ]).select_from(
-            source.join(
-                source_info,
-                source_info.c.id == source.c.id_source_info
+            source_table.join(
+                source_info_table,
+                source_info_table.c.id == source_table.c.id_source_info
             )
         )
         return [SourceData(**src) for src in await conn.fetch_all(source_stmt)]
@@ -122,11 +122,14 @@ class TvShowUpdater:
             return tuple()
 
         stmt = (
-            insert(episode)
+            insert(episode_table)
             .values(fetched_episodes)
             .on_conflict_do_nothing()
             .returning(
-                episode.c.id, episode.c.id_tv_show, episode.c.episode_number, episode.c.season_number
+                episode_table.c.id, 
+                episode_table.c.id_tv_show,
+                episode_table.c.episode_number,
+                episode_table.c.season_number
             )
         )
         return tuple(

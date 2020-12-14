@@ -2,7 +2,7 @@ import pytest
 from aioresponses import aioresponses
 
 from db import UpdatedTvShow
-from models import episode
+from models import Episode
 from updater.update_fetcher import (
     UpdateFetcher,
     EpisodesStruct,
@@ -48,26 +48,25 @@ class TestTvShowUpdater:
             UpdatedTvShow(**{'id_episode': 2, 'id_tv_show': 2, 'episode_number': 15, 'season_number': 6}),
             UpdatedTvShow(**{'id_episode': 3, 'id_tv_show': 1, 'episode_number': 15, 'season_number': 10}),
         )
-
-        list_episode_before = await db_session.fetch_all(episode.select())
+        count_episode_before = await db_session.query(Episode).count()
 
         inserted_episodes = await TvShowUpdater.start(db_session)
 
-        list_episode_after = await db_session.fetch_all(episode.select())
+        count_episode_after = await db_session.query(Episode).count()
 
-        assert len(list_episode_before) == 5
-        assert len(list_episode_after) == (len(list_episode_before) + len(inserted_episodes))
+        assert count_episode_before == 5
+        assert count_episode_after == (count_episode_before + len(inserted_episodes))
         assert inserted_episodes == expect_inserted_episodes
 
     async def test_start__not_released_new_episodes__db_not_updated(self, db_session, mocker_source_responses):
         mocker_source_responses(count=2)
         await TvShowUpdater.start(db_session)
 
-        list_episode_before = await db_session.fetch_all(episode.select())
+        count_episode_before = await db_session.query(Episode).count()
 
         inserted_episodes = await TvShowUpdater.start(db_session)
 
-        list_episode_after = await db_session.fetch_all(episode.select())
+        count_episode_after = await db_session.query(Episode).count()
 
         assert inserted_episodes == tuple()
-        assert len(list_episode_before) == len(list_episode_after)
+        assert count_episode_before == count_episode_after

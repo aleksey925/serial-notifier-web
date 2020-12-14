@@ -101,11 +101,7 @@ def load_data(db_session, base_path, loaded_files):
             module_path, table_name = table
             module_obj = importlib.import_module(module_path)
             # Пакетная загрузка данных
-            try:
-                table_obj = getattr(module_obj, table_name)
-            except AttributeError:
-                table_obj = getattr(module_obj, f'{table_name}_table')
-
+            table_obj = getattr(module_obj, f'{table_name}_table')
             db_session.execute(table_obj.insert(), data)
 
         _update_sequence(db_session, auto_inc_cols)
