@@ -1,0 +1,2 @@
+class SerialNotifierBaseException(Exception):
+    pass

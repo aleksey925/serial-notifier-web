@@ -5,6 +5,7 @@ from updater.notification.telegram import TelegramNotification, NotificationData
 from updater.update_fetcher import TvShowUpdater
 
 
+@pytest.mark.asyncio
 class TestTelegramNotification:
 
     @pytest.fixture

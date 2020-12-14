@@ -1,8 +1,10 @@
-async def test_tv_show_all__get_all_tracked_tv_show_with_status__success(
-        client, db_session, headers_user1
-):
-    resp = await client.get('/tv_show/all', headers=headers_user1)
-    resp_json = await resp.json()
+import pytest
+
+
+@pytest.mark.asyncio
+async def test_tv_show_all__get_all_tracked_tv_show_with_status__success(async_client, db_session, headers_user1):
+    resp = await async_client.get('/tv_show/all/', headers=headers_user1)
+    resp_json = resp.json()
 
     assert resp_json == {
         'tv_shows': {
@@ -12,24 +14,18 @@ async def test_tv_show_all__get_all_tracked_tv_show_with_status__success(
     }
 
 
-async def test_tv_show_all__send_request_from_new_user__return_empty(
-        client, db_session, headers_user2
-):
-    resp = await client.get('/tv_show/all', headers=headers_user2)
-    resp_json = await resp.json()
+@pytest.mark.asyncio
+async def test_tv_show_all__send_request_from_new_user__return_empty(async_client, db_session, headers_user2):
+    resp = await async_client.get('/tv_show/all/', headers=headers_user2)
+    resp_json = resp.json()
 
     assert resp_json == {'tv_shows': {}}
 
 
-async def test_tv_show_all__send_req_without_token__return_401(
-        client, db_session
-):
-    resp = await client.get('/tv_show/all')
-    resp_json = await resp.json()
+@pytest.mark.asyncio
+async def test_tv_show_all__send_req_without_token__return_401(async_client, db_session):
+    resp = await async_client.get('/tv_show/all/')
+    resp_json = resp.json()
 
-    assert resp.status == 401
-    assert resp_json == {
-        'message': 'Authorization required',
-        'code': 'Unauthorized',
-        'error_fields': []
-    }
+    assert resp.status_code == 401
+    assert resp_json == {'detail': 'Not authenticated'}

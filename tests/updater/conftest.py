@@ -3,8 +3,7 @@ from functools import partial
 import pytest
 from aioresponses import aioresponses
 
-from db import get_source_list
-
+from updater.update_fetcher import TvShowUpdater
 
 html_files = {
     3: 'filmix_star_trek_discovery.html',
@@ -16,7 +15,7 @@ html_files = {
 
 @pytest.fixture
 async def source_list(db_session):
-    return await get_source_list(db_session)
+    return await TvShowUpdater.get_source_list(db_session)
 
 
 @pytest.yield_fixture

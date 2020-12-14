@@ -25,9 +25,7 @@ def apply_migrations(root_dir):
         alembic_commands(argv=('--raiseerr', 'upgrade', 'head',))
     except Exception as err:
         next(logger_cleaner)
-        logging.getLogger().error(
-            f'Возникла ошибка при попытке применить миграции: {err}'
-        )
+        logging.getLogger().warning('Возникла ошибка при попытке применить миграции', exc_info=True)
         raise
     finally:
         os.chdir(cwd)
@@ -103,6 +101,11 @@ def load_data(db_session, base_path, loaded_files):
             module_path, table_name = table
             module_obj = importlib.import_module(module_path)
             # Пакетная загрузка данных
-            db_session.execute(getattr(module_obj, table_name).insert(), data)
+            try:
+                table_obj = getattr(module_obj, table_name)
+            except AttributeError:
+                table_obj = getattr(module_obj, f'{table_name}_table')
+
+            db_session.execute(table_obj.insert(), data)
 
         _update_sequence(db_session, auto_inc_cols)

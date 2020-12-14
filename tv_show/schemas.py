@@ -1,8 +1,7 @@
-from marshmallow import Schema, fields
+import typing as t
+
+from pydantic.main import BaseModel
 
 
-class TvShow(Schema):
-    tv_shows = fields.Dict(
-        keys=fields.Str,
-        values=fields.Dict(keys=fields.Str, values=fields.List(fields.Int))
-    )
+class TvShowSchema(BaseModel):
+    tv_shows: t.Dict[str, t.Dict[str, t.List[int]]]
