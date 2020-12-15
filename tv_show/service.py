@@ -3,7 +3,7 @@ import typing as t
 from sqlalchemy import select
 
 from db import get_db
-from models import episode, tv_show, user_table, tracked_tv_show, user_episode
+from models import episode_table, tv_show_table, user_table, tracked_tv_show_table, user_episode_table
 
 
 class TvShowService:
@@ -13,36 +13,36 @@ class TvShowService:
 
     async def _get_tv_show(self, user_id: int) -> t.Tuple[dict, ...]:
         all_tv_show_stmt = select([
-            tv_show.c.name,
-            episode.c.id.label('episode_id'),
-            episode.c.season_number,
-            episode.c.episode_number
+            tv_show_table.c.name,
+            episode_table.c.id.label('episode_id'),
+            episode_table.c.season_number,
+            episode_table.c.episode_number
         ]).where(
             user_table.c.id == user_id
         ).select_from(
             user_table.join(
-                tracked_tv_show,
-                tracked_tv_show.c.id_user == user_table.c.id
+                tracked_tv_show_table,
+                tracked_tv_show_table.c.id_user == user_table.c.id
             ).join(
-                tv_show,
-                tv_show.c.id == tracked_tv_show.c.id_tv_show
+                tv_show_table,
+                tv_show_table.c.id == tracked_tv_show_table.c.id_tv_show
             ).join(
-                episode, episode.c.id_tv_show == tv_show.c.id
+                episode_table, episode_table.c.id_tv_show == tv_show_table.c.id
             )
         ).cte('all_tv_show')
 
         looked_episodes_stmt = select([
-            episode.c.id.label('episode_id'),
-            user_episode.c.looked
+            episode_table.c.id.label('episode_id'),
+            user_episode_table.c.looked
         ]).where(
             user_table.c.id == user_id
         ).select_from(
             user_table.join(
-                user_episode,
-                user_episode.c.id_user == user_table.c.id
+                user_episode_table,
+                user_episode_table.c.id_user == user_table.c.id
             ).join(
-                episode,
-                episode.c.id == user_episode.c.id_episode
+                episode_table,
+                episode_table.c.id == user_episode_table.c.id_episode
             )
         ).cte('looked_episodes')
 

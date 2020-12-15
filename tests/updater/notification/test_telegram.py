@@ -17,7 +17,7 @@ class TestTelegramNotification:
             {'id_tv_show': 4, 'episode_number': 1, 'season_number': 1},
             {'id_tv_show': 5, 'episode_number': 1, 'season_number': 4},
         )
-        return await TvShowUpdater.update_tv_show(db_session, episodes)
+        return await TvShowUpdater(db_session).update_tv_show(episodes)
 
     async def test_get_notification_data(self, db_session, new_episodes):
         notifications = await TelegramNotification(db_session)._get_notification_data(new_episodes)
