@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 from structlog import get_logger
 
 from db import UpdatedTvShow, get_db
-from models import episode_table, source_table, source_info_table
+from models import episode_table, source_table, source_info_table, Episode
 from updater.notification.telegram import TelegramNotification
 from updater.parsers import parsers
 
@@ -98,7 +98,85 @@ class UpdateFetcher:
         return fetched_episodes
 
 
+class TvShowMemoryStorage(object):
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = object.__new__(cls)
+        return cls._instance
+
+    def __init__(self, db_session):
+        self.db_session = db_session
+        self.storage: t.Dict[int: t.Dict[int, set]] = {}
+
+    async def get_all_tv_show(self):
+        if self.storage:
+            return self.storage
+
+        all_tv_show_stmt = select([Episode.id_tv_show, Episode.episode_number, Episode.season_number])
+
+        for episode_data in await self.db_session.fetch_all(all_tv_show_stmt):
+            tv_show_info = self.storage.setdefault(episode_data['id_tv_show'], {})
+            season_info = tv_show_info.setdefault(episode_data['season_number'], set())
+            season_info.add(episode_data['episode_number'])
+
+        return self.storage
+
+    def update_tv_show(self, id_tv_show: int, season_number: int, episodes: t.Iterable[int]):
+        self._update_tv_show(self.storage, id_tv_show, season_number, episodes)
+
+    def _update_tv_show(self, target_storage: dict, id_tv_show: int, season_number: int, episodes: t.Iterable[int]):
+        new_tv_show = target_storage.setdefault(id_tv_show, {})
+        new_season = new_tv_show.setdefault(season_number, set())
+        new_season.update(episodes)
+
+    async def find_new_episode(self, fetched_episodes: t.Dict[str, t.List[EpisodesStruct]]) -> t.List[dict]:
+        await self.get_all_tv_show()
+
+        all_updated_episodes = []
+        for site_name, list_episodes_struct in fetched_episodes.items():
+            for episode_inf in list_episodes_struct:
+                stored_tv_show = self.storage.get(episode_inf.id_tv_show)
+                if not stored_tv_show:
+                    for i in episode_inf.episode_info['episodes']:
+                        all_updated_episodes.append({
+                            'id_tv_show': episode_inf.id_tv_show,
+                            'episode_number': i,
+                            'season_number': episode_inf.episode_info['season'],
+                        })
+                    self._update_tv_show(
+                        self.storage,
+                        episode_inf.id_tv_show,
+                        episode_inf.episode_info['season'],
+                        episode_inf.episode_info['episodes'],
+                    )
+                    continue
+
+                stored_episodes = stored_tv_show.get(episode_inf.episode_info['season'], set())
+                new_episodes = set(episode_inf.episode_info['episodes']) - stored_episodes
+                if new_episodes:
+                    for i in new_episodes:
+                        all_updated_episodes.append({
+                            'id_tv_show': episode_inf.id_tv_show,
+                            'episode_number': i,
+                            'season_number': episode_inf.episode_info['season'],
+                        })
+                    self._update_tv_show(
+                        self.storage,
+                        episode_inf.id_tv_show,
+                        episode_inf.episode_info['season'],
+                        new_episodes
+                    )
+
+        return all_updated_episodes
+
+
 class TvShowUpdater:
+
+    def __init__(self, db_session):
+        self.db_session = db_session
 
     @staticmethod
     async def get_source_list(conn) -> t.List[SourceData]:
@@ -116,8 +194,7 @@ class TvShowUpdater:
         )
         return [SourceData(**src) for src in await conn.fetch_all(source_stmt)]
 
-    @staticmethod
-    async def update_tv_show(conn, fetched_episodes: t.List[dict]) -> t.Tuple[UpdatedTvShow, ...]:
+    async def update_tv_show(self, fetched_episodes: t.List[dict]) -> t.Tuple[UpdatedTvShow, ...]:
         if not fetched_episodes:
             return tuple()
 
@@ -138,36 +215,16 @@ class TvShowUpdater:
                 id_tv_show=i['id_tv_show'],
                 episode_number=i['episode_number'],
                 season_number=i['season_number']
-            ) for i in await conn.fetch_all(stmt)
+            ) for i in await self.db_session.fetch_all(stmt)
         )
 
-    @staticmethod
-    def prepare_data_before_insert(fetched_episodes: t.Dict[str, t.List[EpisodesStruct]]) -> t.List[dict]:
-        prepared_data = []
-
-        for site_name, episodes in fetched_episodes.items():
-            for ep in episodes:
-                if not ep.episode_info:
-                    continue
-
-                for episode_number in ep.episode_info['episodes']:
-                    prepared_data.append({
-                        'id_tv_show': ep.id_tv_show,
-                        'episode_number': episode_number,
-                        'season_number': ep.episode_info['season'],
-                    })
-
-        return prepared_data
-
-    @classmethod
-    async def start(cls, db_session) -> t.Tuple[UpdatedTvShow, ...]:
+    async def start(self) -> t.Tuple[UpdatedTvShow, ...]:
         logger.info('Запущено обновление')
-        source_list = await cls.get_source_list(db_session)
+        source_list = await self.get_source_list(self.db_session)
         fetcher = UpdateFetcher(source_list)
         fetched_episodes = await fetcher.start()
-        inserted_episodes = await cls.update_tv_show(
-            db_session, cls.prepare_data_before_insert(fetched_episodes)
-        )
+        new_episodes = await TvShowMemoryStorage(self.db_session).find_new_episode(fetched_episodes)
+        inserted_episodes = await self.update_tv_show(new_episodes)
         logger.info(f'В БД была добавлена информация о новых сериях', count_episode=len(inserted_episodes))
         logger.info('Обновление завершено')
         return inserted_episodes
@@ -179,5 +236,5 @@ class UpdateService:
         self._db_session = get_db()
 
     async def start(self):
-        inserted_episodes = await TvShowUpdater.start(self._db_session)
+        inserted_episodes = await TvShowUpdater(self._db_session).start()
         await TelegramNotification(db_session=self._db_session).notify(new_episodes=inserted_episodes)
