@@ -9,7 +9,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from config import get_config
 from db import UpdatedTvShow
-from models import telegram_acc, tracked_tv_show, tv_show, episode
+from models import telegram_acc_table, tracked_tv_show_table, tv_show_table, episode_table
 from updater.notification.base import BaseNotification
 
 logger = get_logger(__name__)
@@ -34,22 +34,22 @@ class TelegramNotification(BaseNotification):
     async def _get_notification_data(self, new_episodes: t.Tuple[UpdatedTvShow, ...]) -> t.Iterable[NotificationData]:
         tracked_tv_show_stmt = (
             select([
-                tv_show.c.id,
-                tv_show.c.name,
-                episode.c.episode_number,
-                episode.c.season_number,
-                tracked_tv_show.c.id_user,
-                telegram_acc.c.chat_id,
+                tv_show_table.c.id,
+                tv_show_table.c.name,
+                episode_table.c.episode_number,
+                episode_table.c.season_number,
+                tracked_tv_show_table.c.id_user,
+                telegram_acc_table.c.chat_id,
             ])
             .select_from(
-                episode
-                    .join(tv_show, tv_show.c.id == episode.c.id_tv_show)
-                    .join(tracked_tv_show, tracked_tv_show.c.id_tv_show == episode.c.id_tv_show)
-                    .join(telegram_acc, telegram_acc.c.id_user == tracked_tv_show.c.id_user)
+                episode_table
+                    .join(tv_show_table, tv_show_table.c.id == episode_table.c.id_tv_show)
+                    .join(tracked_tv_show_table, tracked_tv_show_table.c.id_tv_show == episode_table.c.id_tv_show)
+                    .join(telegram_acc_table, telegram_acc_table.c.id_user == tracked_tv_show_table.c.id_user)
             )
             .where(
                 and_(
-                    episode.c.id.in_(tuple(i.id_episode for i in new_episodes)),
+                    episode_table.c.id.in_(tuple(i.id_episode for i in new_episodes)),
                 )
             )
         )

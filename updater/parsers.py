@@ -16,7 +16,7 @@ def seasonvar(page: str) -> Optional[Dict[str, Union[int, List[int]]]]:
         last_season_row_elem = parser.cssselect('ul.tabs-result > li > h2:last-child a')[0]
     except IndexError:
         logger.warning(
-            'На сайте seasonvar не удалсь найти блок хранящий информацию о последней серии'
+            'На сайте seasonvar не удалось найти блок хранящий информацию о последней серии'
         )
         return
 
@@ -79,7 +79,7 @@ def fanserials(page: str) -> Optional[Dict[str, Union[int, List[int]]]]:
         last_episode_elem = parser.cssselect('#episode_list li')[0]
     except IndexError:
         logger.warning(
-            'На сайте fanserials не удалсь найти блок хранящий информацию о последней серии'
+            'На сайте fanserials не удалось найти блок хранящий информацию о последней серии'
         )
         return
 

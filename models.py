@@ -2,8 +2,7 @@ import enum
 from datetime import datetime
 
 from sqlalchemy import (
-    Table, Column, Integer, DateTime, Enum as SaEnum, Unicode, Boolean, ForeignKey, UnicodeText,
-    UniqueConstraint
+    Column, Integer, DateTime, Enum as SaEnum, Unicode, Boolean, ForeignKey, UnicodeText, UniqueConstraint, Table
 )
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -34,77 +33,100 @@ user_table = User.__table__
 
 
 # Хранит информацию о том какие сериалы отслеживает пользователь
-tracked_tv_show = Table(
+tracked_tv_show_table = Table(
     'tracked_tv_show',
     metadata,
     Column('id_user', Integer, ForeignKey('user.id')),
     Column('id_tv_show', Integer, ForeignKey('tv_show.id'))
 )
 
+
 # Хранит данные для панели уведомлений, в которой для каждого пользователя
 # отображаются недавно вышедшие серии.
-tv_show_notification = Table(
+tv_show_notification_table = Table(
     'tv_show_notification',
     metadata,
     Column('id_user', Integer, ForeignKey('user.id')),
     Column('id_episode', Integer, ForeignKey('episode.id'))
 )
 
-# Хранит дополнительную информацию о сериях. На пример, какие серии
-# пользователь посмотрел.
-user_episode = Table(
-    'user_episode',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('id_user', Integer, ForeignKey('user.id'), nullable=False),
-    Column('id_episode', Integer, ForeignKey('episode.id'), nullable=False),
-    Column('looked', Boolean(), default=False),
-    UniqueConstraint('id_user', 'id_episode', name='constraint_unique_episode_for_user'),
-)
 
-tv_show = Table(
-    'tv_show',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('name', Unicode(150), nullable=False),
-    Column('cover', Unicode(300)),
-    Column('description', UnicodeText()),
-)
+class UserEpisode(Base):
+    """
+    Хранит дополнительную информацию о сериях. На пример, какие серии пользователь посмотрел.
+    """
 
-episode = Table(
-    'episode',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('id_tv_show', Integer, ForeignKey('tv_show.id'), nullable=False),
-    Column('episode_number', Integer, nullable=False),
-    Column('season_number', Integer, nullable=False),
-    UniqueConstraint('id_tv_show', 'episode_number', 'season_number', name='constraint_unique_episode'),
-)
+    __tablename__ = 'user_episode'
+    __table_args__ = (
+        UniqueConstraint('id_user', 'id_episode', name='constraint_unique_episode_for_user'),
+    )
 
-source_info = Table(
-    'source_info',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('site_name', Unicode(length=15), nullable=False),
-    Column('encoding', Unicode(length=10)),
-)
+    id = Column(Integer, primary_key=True)
+    id_user = Column(Integer, ForeignKey('user.id'), nullable=False)
+    id_episode = Column(Integer, ForeignKey('episode.id'), nullable=False)
+    looked = Column(Boolean(), default=False)
 
-source = Table(
-    'source',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('id_tv_show', Integer, ForeignKey('tv_show.id'), nullable=False),
-    Column(
-        'id_source_info', Integer, ForeignKey('source_info.id'), nullable=False
-    ),
-    Column('url', Unicode(length=300), nullable=False),
-)
 
-telegram_acc = Table(
-    'telegram_acc',
-    metadata,
-    Column('id', Integer, primary_key=True),
-    Column('id_user', Integer, ForeignKey('user.id'), nullable=False),
-    Column('chat_id', Integer, nullable=False),
-    Column('username', Unicode(length=30), nullable=False),
-)
+user_episode_table = UserEpisode.__table__
+
+
+class TvShow(Base):
+    __tablename__ = 'tv_show'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(Unicode(150), nullable=False)
+    cover = Column(Unicode(300))
+    description = Column(UnicodeText())
+
+
+tv_show_table = TvShow.__table__
+
+
+class Episode(Base):
+    __tablename__ = 'episode'
+    __table_args__ = (
+        UniqueConstraint('id_tv_show', 'episode_number', 'season_number', name='constraint_unique_episode'),
+    )
+
+    id = Column(Integer, primary_key=True)
+    id_tv_show = Column(Integer, ForeignKey('tv_show.id'), nullable=False)
+    episode_number = Column(Integer, nullable=False)
+    season_number = Column(Integer, nullable=False)
+
+
+episode_table = Episode.__table__
+
+
+class SourceInfo(Base):
+    __tablename__ = 'source_info'
+
+    id = Column(Integer, primary_key=True)
+    site_name = Column(Unicode(length=15), nullable=False)
+    encoding = Column(Unicode(length=10))
+
+
+source_info_table = SourceInfo.__table__
+
+
+class Source(Base):
+    __tablename__ = 'source'
+
+    id = Column(Integer, primary_key=True)
+    id_tv_show = Column(Integer, ForeignKey('tv_show.id'), nullable=False)
+    id_source_info = Column(Integer, ForeignKey('source_info.id'), nullable=False)
+    url = Column(Unicode(length=300), nullable=False)
+
+
+source_table = Source.__table__
+
+
+class TelegramAcc(Base):
+    __tablename__ = 'telegram_acc'
+
+    id = Column(Integer, primary_key=True)
+    id_user = Column(Integer, ForeignKey('user.id'), nullable=False)
+    chat_id = Column(Integer, nullable=False)
+    username = Column(Unicode(length=30), nullable=False)
+
+
+telegram_acc_table = TelegramAcc.__table__
