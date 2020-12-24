@@ -51,25 +51,6 @@ tv_show_notification_table = Table(
 )
 
 
-class UserEpisode(Base):
-    """
-    Хранит дополнительную информацию о сериях. На пример, какие серии пользователь посмотрел.
-    """
-
-    __tablename__ = 'user_episode'
-    __table_args__ = (
-        UniqueConstraint('id_user', 'id_episode', name='constraint_unique_episode_for_user'),
-    )
-
-    id = Column(Integer, primary_key=True)
-    id_user = Column(Integer, ForeignKey('user.id'), nullable=False)
-    id_episode = Column(Integer, ForeignKey('episode.id'), nullable=False)
-    looked = Column(Boolean(), default=False)
-
-
-user_episode_table = UserEpisode.__table__
-
-
 class TvShow(Base):
     __tablename__ = 'tv_show'
 
@@ -95,6 +76,25 @@ class Episode(Base):
 
 
 episode_table = Episode.__table__
+
+
+class UserEpisode(Base):
+    """
+    Хранит дополнительную информацию о сериях. На пример, какие серии пользователь посмотрел.
+    """
+
+    __tablename__ = 'user_episode'
+    __table_args__ = (
+        UniqueConstraint('id_user', 'id_episode', name='constraint_unique_episode_for_user'),
+    )
+
+    id = Column(Integer, primary_key=True)
+    id_user = Column(Integer, ForeignKey('user.id'), nullable=False)
+    id_episode = Column(Integer, ForeignKey('episode.id'), nullable=False)
+    looked = Column(Boolean(), default=False)
+
+
+user_episode_table = UserEpisode.__table__
 
 
 class SourceInfo(Base):

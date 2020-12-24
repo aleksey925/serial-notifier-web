@@ -1,9 +1,11 @@
 import typing as t
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 
 from db import get_db
-from models import episode_table, tv_show_table, user_table, tracked_tv_show_table, user_episode_table
+from models import episode_table, tv_show_table, user_table, tracked_tv_show_table, user_episode_table, UserEpisode
+from tv_show.schemas import UserEpisodeReqSchema, UserEpisodeRespSchema
 
 
 class TvShowService:
@@ -77,3 +79,27 @@ class TvShowService:
             tv_show_data.setdefault(rec['season_number'], []).append(rec['episode_number'])
 
         return all_tv_show
+
+    async def update_user_episode(self, usr_episode: UserEpisodeReqSchema) -> UserEpisodeRespSchema:
+        """
+        Выполняет обновление информации об эпизоде
+        :param usr_episode: изменения, которые необходимо зафиксировать в БД
+        :return: обновленная информация об эпизоде
+        """
+        inserted_data = usr_episode.dict()
+        updated_usr_episode = await self.db.fetch_one(
+            insert(user_episode_table)
+            .values(**inserted_data)
+            .on_conflict_do_update(
+                constraint='constraint_unique_episode_for_user',
+                set_={'looked': inserted_data['looked']}
+            )
+            .returning(
+                UserEpisode.id,
+                UserEpisode.id_user,
+                UserEpisode.id_episode,
+                UserEpisode.looked,
+            )
+        )
+
+        return UserEpisodeRespSchema(**dict(updated_usr_episode))

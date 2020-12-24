@@ -9,7 +9,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from config import get_config
 from db import UpdatedTvShow
-from models import telegram_acc_table, tracked_tv_show_table, tv_show_table, episode_table
+from models import tracked_tv_show_table, episode_table, Episode, TvShow, TelegramAcc
 from updater.notification.base import BaseNotification
 
 logger = get_logger(__name__)
@@ -19,6 +19,7 @@ logger = get_logger(__name__)
 class NotificationData:
     tv_show_id: int
     tv_show_name: str
+    id_episode: int
     episode_number: int
     season_number: int
     id_user: int
@@ -34,22 +35,23 @@ class TelegramNotification(BaseNotification):
     async def _get_notification_data(self, new_episodes: t.Tuple[UpdatedTvShow, ...]) -> t.Iterable[NotificationData]:
         tracked_tv_show_stmt = (
             select([
-                tv_show_table.c.id,
-                tv_show_table.c.name,
-                episode_table.c.episode_number,
-                episode_table.c.season_number,
+                TvShow.id,
+                TvShow.name,
+                Episode.id.label('id_episode'),
+                Episode.episode_number,
+                Episode.season_number,
                 tracked_tv_show_table.c.id_user,
-                telegram_acc_table.c.chat_id,
+                TelegramAcc.chat_id,
             ])
             .select_from(
                 episode_table
-                    .join(tv_show_table, tv_show_table.c.id == episode_table.c.id_tv_show)
+                    .join(TvShow, TvShow.id == Episode.id_tv_show)
                     .join(tracked_tv_show_table, tracked_tv_show_table.c.id_tv_show == episode_table.c.id_tv_show)
-                    .join(telegram_acc_table, telegram_acc_table.c.id_user == tracked_tv_show_table.c.id_user)
+                    .join(TelegramAcc, TelegramAcc.id_user == tracked_tv_show_table.c.id_user)
             )
             .where(
                 and_(
-                    episode_table.c.id.in_(tuple(i.id_episode for i in new_episodes)),
+                    Episode.id.in_(tuple(i.id_episode for i in new_episodes)),
                 )
             )
         )
@@ -57,6 +59,7 @@ class TelegramNotification(BaseNotification):
             NotificationData(
                 tv_show_id=i.id,
                 tv_show_name=i.name,
+                id_episode=i.id_episode,
                 episode_number=i.episode_number,
                 season_number=i.season_number,
                 id_user=i.id_user,
@@ -67,7 +70,7 @@ class TelegramNotification(BaseNotification):
 
     def _generate_keyboard(self, notif_data: NotificationData):
         callback_data = (
-            f'looked {notif_data.id_user},{notif_data.tv_show_id},{notif_data.episode_number},'
+            f'looked {notif_data.id_user},{notif_data.tv_show_id},{notif_data.id_episode},{notif_data.episode_number},'
             f'{notif_data.season_number},'
         )
 
