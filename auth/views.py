@@ -38,3 +38,8 @@ async def reg_new_user(payload: RegistrationReqSchema):
         )
 
     return new_user
+
+
+@router.get('/health-check/')
+def health_check():
+    return {'status': 'ok'}

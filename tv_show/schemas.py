@@ -4,11 +4,10 @@ from pydantic.main import BaseModel
 
 
 class TvShowSchema(BaseModel):
-    tv_shows: t.Dict[str, t.Dict[str, t.List[int]]]
+    tv_shows: t.Dict[str, t.Dict[str, t.Dict[str, bool]]]
 
 
 class UserEpisodeReqSchema(BaseModel):
-    id_user: int
     id_episode: int
     looked: bool
 

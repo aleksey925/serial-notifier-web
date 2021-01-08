@@ -1,0 +1,9 @@
+version: '3.7'
+
+services:
+
+  app:
+    environment:
+      - CURRENT_ENV=dev
+    volumes:
+      - .:/opt/app/

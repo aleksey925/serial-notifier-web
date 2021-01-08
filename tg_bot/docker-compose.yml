@@ -1,0 +1,14 @@
+version: '3.7'
+
+services:
+
+  app:
+    image: registry.gitlab.com/alex925/serial-notifier-web/tg-bot:develop
+    restart: on-failure:10
+    env_file:
+      - .env
+    environment:
+      - LOCAL_MODE=0
+    command: bash -c "
+      dockerize --wait-retry-interval 5s --timeout 100s -wait ${API_BASE_URL}/health-check/
+      && python /opt/app/main.py"

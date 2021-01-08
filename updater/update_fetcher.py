@@ -70,7 +70,7 @@ class UpdateFetcher:
         tasks = []
 
         semaphore = asyncio.Semaphore(1000)
-        connector = aiohttp.TCPConnector(verify_ssl=False)
+        connector = aiohttp.TCPConnector(ssl=False)
         async with aiohttp.ClientSession(connector=connector) as session:
             for source in self._source_list:
                 store[source.site_name] = []
@@ -238,3 +238,13 @@ class UpdateService:
     async def start(self):
         inserted_episodes = await TvShowUpdater(self._db_session).start()
         await TelegramNotification(db_session=self._db_session).notify(new_episodes=inserted_episodes)
+
+
+if __name__ == '__main__':
+    from db import init_db
+
+    async def run():
+        await init_db()
+        await UpdateService().start()
+
+    asyncio.run(run())

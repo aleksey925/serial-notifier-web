@@ -27,6 +27,7 @@ async def init_db():
     db = OMDatabase(config.DATABASE_URI, force_rollback=config.CURRENT_ENV == 'test')
     await db.connect()
     set_db(db)
+    return db
 
 
 async def close_db():

@@ -1,11 +1,16 @@
 import typing as t
 
+import psycopg2.errors
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
+from structlog import get_logger
 
+from common.exceptions import ObjectDoesNotExist
 from db import get_db
 from models import episode_table, tv_show_table, user_table, tracked_tv_show_table, user_episode_table, UserEpisode
 from tv_show.schemas import UserEpisodeReqSchema, UserEpisodeRespSchema
+
+logger = get_logger(__name__)
 
 
 class TvShowService:
@@ -67,39 +72,47 @@ class TvShowService:
         """
         Извлекает из БД информацию о всех сериалах отслеживаемых пользователем.
         :param user_id: идентификатор пользователя
-        :return: словарь с сериалами.
+        :return: словарь с сериалами
         Пример возвращаемых данных:
-        {'Звездный путь': {3: [1, 2]}, 'Ходячие мертвецы': {1: [1, 2]}}
+        {'Ходячие мертвецы': {1: {1: True, 2: False}}, 'Звездный путь': {3: {1: True, 2: False}}}
         """
         user_tv_show = await self._get_tv_show(user_id)
 
         all_tv_show = {}
         for rec in user_tv_show:
             tv_show_data = all_tv_show.setdefault(rec['name'], {})
-            tv_show_data.setdefault(rec['season_number'], []).append(rec['episode_number'])
+            tv_show_data.setdefault(rec['season_number'], {})[rec['episode_number']] = bool(rec['looked'])
 
         return all_tv_show
 
-    async def update_user_episode(self, usr_episode: UserEpisodeReqSchema) -> UserEpisodeRespSchema:
+    async def update_user_episode(self, id_user: int, usr_episode: UserEpisodeReqSchema) -> UserEpisodeRespSchema:
         """
         Выполняет обновление информации об эпизоде
+        :param id_user: идентификатор пользователя для которого будет обновлена информация о серии
         :param usr_episode: изменения, которые необходимо зафиксировать в БД
         :return: обновленная информация об эпизоде
         """
         inserted_data = usr_episode.dict()
-        updated_usr_episode = await self.db.fetch_one(
-            insert(user_episode_table)
-            .values(**inserted_data)
-            .on_conflict_do_update(
-                constraint='constraint_unique_episode_for_user',
-                set_={'looked': inserted_data['looked']}
-            )
-            .returning(
-                UserEpisode.id,
-                UserEpisode.id_user,
-                UserEpisode.id_episode,
-                UserEpisode.looked,
-            )
-        )
+        inserted_data['id_user'] = id_user
 
-        return UserEpisodeRespSchema(**dict(updated_usr_episode))
+        try:
+            updated_usr_episode = await self.db.fetch_one(
+                insert(user_episode_table)
+                .values(**inserted_data)
+                .on_conflict_do_update(
+                    constraint='constraint_unique_episode_for_user',
+                    set_={'looked': inserted_data['looked']}
+                )
+                .returning(
+                    UserEpisode.id,
+                    UserEpisode.id_user,
+                    UserEpisode.id_episode,
+                    UserEpisode.looked,
+                )
+            )
+
+            return UserEpisodeRespSchema(**dict(updated_usr_episode))
+        except psycopg2.errors.ForeignKeyViolation as exc:
+            error_msg = str(exc)
+            logger.warn('Не удалось записать/обновить доп. информацию об эпизоде', error_msg=error_msg)
+            raise ObjectDoesNotExist(error_msg[error_msg.find('DETAIL: '):].strip())

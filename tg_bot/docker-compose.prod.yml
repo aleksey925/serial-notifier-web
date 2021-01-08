@@ -1,0 +1,8 @@
+version: '3.7'
+
+services:
+
+  app:
+    image: registry.gitlab.com/alex925/serial-notifier-web/tg-bot:${PROD_IMAGE_TAG}
+    environment:
+      - CURRENT_ENV=prod

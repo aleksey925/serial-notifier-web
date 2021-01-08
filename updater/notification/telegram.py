@@ -71,13 +71,13 @@ class TelegramNotification(BaseNotification):
     def _generate_keyboard(self, notif_data: NotificationData):
         callback_data = (
             f'looked {notif_data.id_user},{notif_data.tv_show_id},{notif_data.id_episode},{notif_data.episode_number},'
-            f'{notif_data.season_number},'
+            f'{notif_data.season_number},{{is_looked}}'
         )
 
         keyboard = InlineKeyboardMarkup(row_width=2)
         keyboard.add(
-            InlineKeyboardButton('Смотрел', callback_data=callback_data + '1'),
-            InlineKeyboardButton("Не смотрел", callback_data=callback_data + '0'),
+            InlineKeyboardButton('Смотрел', callback_data=callback_data.format(is_looked=1)),
+            InlineKeyboardButton("Не смотрел", callback_data=callback_data.format(is_looked=0)),
         )
         return keyboard
 
