@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "telegram-bot"
+version = "0.1.0"
+description = ""
+authors = ["Aleksey Petrunnik <petrunnik.a@mail.ru>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pyTelegramBotAPI = "=3.7.4"
+python-dotenv = "=0.12.0"
+python-jose = { version = "=3.2.0", extras = ["cryptography"] }
+pydantic = "=1.7.3"
+structlog = "=20.1.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "=6.2.1"
+pytest-env = "=0.6.2"
+
+[build-system]
+requires = ["poetry>=1.0"]
+build-backend = "poetry.masonry.api"
