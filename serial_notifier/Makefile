@@ -1,11 +1,16 @@
 build-base-img:
-	docker build \
-		-f ./conf_files/docker/base.Dockerfile \
+	cd .. \
+	&& docker build \
+		-f ./serial_notifier/conf_files/docker/base.Dockerfile \
 		-t registry.gitlab.com/alex925/serial-notifier-web/app:base .
 
+push-base-img:
+	docker push registry.gitlab.com/alex925/serial-notifier-web/app:base
+
 build-dev-app-img:
-	docker build \
-		-f ./conf_files/docker/Dockerfile \
+	cd .. \
+	&& docker build \
+		-f ./serial_notifier/conf_files/docker/Dockerfile \
 		--build-arg CURRENT_ENV=dev \
 		-t registry.gitlab.com/alex925/serial-notifier-web/app:develop .
 

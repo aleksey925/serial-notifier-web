@@ -6,8 +6,8 @@ from telebot.types import CallbackQuery
 
 from bot.utils import parse_looked_button_data
 from bot.config import get_config
-from serial_notifier_web.api import Client
-from serial_notifier_web.schema import UserEpisodeSchema
+from serial_notifier_api.api import Client
+from serial_notifier_schema.tv_show import UserEpisodeReqSchema
 
 logger = get_logger(__name__)
 config = get_config()
@@ -42,9 +42,15 @@ def notification_button_click_handler(call: CallbackQuery, *, bot: TeleBot):
         logger.warn('Не удалось обработать данные кнопки', data=call.data, exc_info=True)
         return
 
-    client_api = Client(base_url=config.API_BASE_URL, user_id=button_data.id_user)
+    client_api = Client(
+        base_url=config.API_BASE_URL,
+        user_id=button_data.id_user,
+        jwt_secret=config.JWT_SECRET,
+        jwt_exp_delta_min=config.JWT_EXP_DELTA_MIN,
+        jwt_algorithm=config.JWT_ALGORITHM,
+    )
     try:
-        client_api.update_user_episode(UserEpisodeSchema(**button_data.dict()))
+        client_api.update_user_episode(UserEpisodeReqSchema(**button_data.dict()))
     except Exception:
         bot.answer_callback_query(call.id, 'Не удалось обновить информацию о выбранном эпизоде')
         logger.warn('Не удалось обновить информацию о выбранном эпизоде', exc_info=True)

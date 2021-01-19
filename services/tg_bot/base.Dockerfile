@@ -4,8 +4,10 @@ ARG CURRENT_ENV=prod
 ENV POETRY_VERSION=1.0.5
 ENV DOCKERIZE_VERSION=v0.6.1
 
+# Предполагается, что сборка образа будет запускаться из корня проекта
+COPY ./libs /opt
 WORKDIR /opt/app/
-COPY ./pyproject.toml ./poetry.lock /opt/app/
+COPY ./services/tg_bot/pyproject.toml ./services/tg_bot/poetry.lock /opt/app/
 
 RUN apt update \
     && apt-get install -y wget \

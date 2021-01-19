@@ -11,6 +11,7 @@ python-dotenv = "=0.12.0"
 python-jose = { version = "=3.2.0", extras = ["cryptography"] }
 pydantic = "=1.7.3"
 structlog = "=20.1.0"
+serial-notifier-api = { path = "../libs/serial-notifier-api/" }
 
 [tool.poetry.dev-dependencies]
 pytest = "=6.2.1"

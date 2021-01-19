@@ -25,6 +25,7 @@ cssselect = "=1.1.0"
 apscheduler = "=3.6.3"
 pyTelegramBotAPI = "=3.7.4"
 structlog = "=20.1.0"
+serial-notifier-schema = { path = "../libs/serial-notifier-schema/" }
 
 [tool.poetry.dev-dependencies]
 pytest = "=5.4.1"

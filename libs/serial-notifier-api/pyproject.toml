@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "serial-notifier-api"
+version = "0.1.0"
+description = ""
+authors = ["Aleksey Petrunnik <petrunnik.a@mail.ru>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pydantic = "^1.7.3"
+requests = "^2.25.1"
+serial-notifier-schema = { path = "../libs/serial-notifier-schema/" }
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=1.0", "setuptools>50"]
+build-backend = "poetry.masonry.api"

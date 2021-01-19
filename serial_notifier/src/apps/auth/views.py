@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
 from apps.auth.exceptions import LoginException, UserAlreadyExists
-from apps.auth.schemas import LoginReqSchema, TokenRespSchema, RegistrationReqSchema, RegistrationRespSchema
+from serial_notifier_schema.auth import LoginReqSchema, TokenRespSchema, RegistrationReqSchema, RegistrationRespSchema
 from apps.auth.service import AccountService
 
 router = APIRouter()

@@ -8,7 +8,7 @@ from structlog import get_logger
 from apps.common.exceptions import ObjectDoesNotExist
 from db import get_db
 from models import episode_table, tv_show_table, user_table, tracked_tv_show_table, user_episode_table, UserEpisode
-from apps.tv_show.schemas import UserEpisodeReqSchema, UserEpisodeRespSchema
+from serial_notifier_schema.tv_show import UserEpisodeReqSchema, UserEpisodeRespSchema
 
 logger = get_logger(__name__)
 

@@ -1,8 +1,18 @@
 build-base-img:
-	docker build -f ./base.Dockerfile -t registry.gitlab.com/alex925/serial-notifier-web/tg-bot:base .
+	cd ../.. \
+	&& docker build \
+		-f ./services/tg_bot/base.Dockerfile \
+		-t registry.gitlab.com/alex925/serial-notifier-web/tg-bot:base .
+
+push-base-img:
+	docker push registry.gitlab.com/alex925/serial-notifier-web/tg-bot:base
 
 build-dev-app-img:
-	docker build --build-arg CURRENT_ENV=dev -t registry.gitlab.com/alex925/serial-notifier-web/tg-bot:develop .
+	cd ../.. \
+	&& docker build \
+		--build-arg CURRENT_ENV=dev \
+		-f ./services/tg_bot/Dockerfile \
+		-t registry.gitlab.com/alex925/serial-notifier-web/tg-bot:develop .
 
 
 run-dev:
