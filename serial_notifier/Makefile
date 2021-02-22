@@ -27,3 +27,24 @@ ps:
 
 stop:
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.prod.yml -f docker-compose.override.yml stop
+
+
+beauty_check:
+	flake8 --count && \
+	autoflake \
+		-r \
+		--remove-all-unused-imports \
+		--ignore-init-module-imports \
+		--exclude=.git,venv,alembic,volumes . && \
+	isort --diff . && \
+	black --diff .
+
+beautify:
+	autoflake \
+		-r \
+		--in-place \
+		--remove-all-unused-imports \
+		--ignore-init-module-imports \
+		--exclude=.git,venv,alembic,volumes . && \
+	isort . && \
+	black .

@@ -1,0 +1,17 @@
+[flake8]
+exclude =
+    .git,
+    venv,
+    __pycache__,
+    .pytest_cache,
+    alembic,
+    volumes,
+    conf_files,
+    tests
+ignore =
+    E501,
+    I100,
+    I101
+application_import_names=config,apps,db,logger,models,updater
+max-complexity = 10
+import-order-style = edited
