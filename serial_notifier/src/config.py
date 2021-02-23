@@ -1,5 +1,4 @@
 import os
-from os import path
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -31,9 +30,7 @@ class BaseConfig:
 
     @property
     def DATABASE_URI(self):
-        return (
-            f'postgresql+aiopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
-        )
+        return f'postgresql+aiopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
 
 
 class DevConfig(BaseConfig):
@@ -57,15 +54,11 @@ class TestConfig(DevConfig):
 
     @property
     def DATABASE_URI(self):
-        return (
-            f'postgresql+aiopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
-        )
+        return f'postgresql+aiopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
 
     @property
     def DATABASE_DEFAULT_URI(self):
-        return (
-            f'postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME_DEFAULT}'
-        )
+        return f'postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME_DEFAULT}'
 
 
 class ProdConfig(BaseConfig):
@@ -73,11 +66,7 @@ class ProdConfig(BaseConfig):
         super().__init__()
 
 
-config = {
-    'dev': DevConfig,
-    'test': TestConfig,
-    'prod': ProdConfig
-}
+config = {'dev': DevConfig, 'test': TestConfig, 'prod': ProdConfig}
 
 
 def _get_config_gen():

@@ -2,14 +2,14 @@ import asyncio
 import typing as t
 from dataclasses import dataclass
 
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 from structlog import get_logger
 from telebot import TeleBot
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from config import get_config
 from db import UpdatedTvShow
-from models import tracked_tv_show_table, episode_table, Episode, TvShow, TelegramAcc
+from models import Episode, TelegramAcc, TvShow, episode_table, tracked_tv_show_table
 from updater.notification.base import BaseNotification
 
 logger = get_logger(__name__)
@@ -27,27 +27,27 @@ class NotificationData:
 
 
 class TelegramNotification(BaseNotification):
-
     def __init__(self, db_session):
         self._config = get_config()
         self._db_session = db_session
 
     async def _get_notification_data(self, new_episodes: t.Tuple[UpdatedTvShow, ...]) -> t.Iterable[NotificationData]:
         tracked_tv_show_stmt = (
-            select([
-                TvShow.id,
-                TvShow.name,
-                Episode.id.label('id_episode'),
-                Episode.episode_number,
-                Episode.season_number,
-                tracked_tv_show_table.c.id_user,
-                TelegramAcc.chat_id,
-            ])
+            select(
+                [
+                    TvShow.id,
+                    TvShow.name,
+                    Episode.id.label('id_episode'),
+                    Episode.episode_number,
+                    Episode.season_number,
+                    tracked_tv_show_table.c.id_user,
+                    TelegramAcc.chat_id,
+                ]
+            )
             .select_from(
-                episode_table
-                    .join(TvShow, TvShow.id == Episode.id_tv_show)
-                    .join(tracked_tv_show_table, tracked_tv_show_table.c.id_tv_show == episode_table.c.id_tv_show)
-                    .join(TelegramAcc, TelegramAcc.id_user == tracked_tv_show_table.c.id_user)
+                episode_table.join(TvShow, TvShow.id == Episode.id_tv_show)  # noqa: E131
+                .join(tracked_tv_show_table, tracked_tv_show_table.c.id_tv_show == episode_table.c.id_tv_show)
+                .join(TelegramAcc, TelegramAcc.id_user == tracked_tv_show_table.c.id_user)
             )
             .where(
                 and_(
@@ -89,9 +89,7 @@ class TelegramNotification(BaseNotification):
             try:
                 bot.send_message(notif.chat_id, msg, reply_markup=self._generate_keyboard(notif))
             except Exception:
-                logger.error(
-                    'Возникла ошибка при отправке уведомления через телеграм', msg=msg, chat_id=notif.chat_id
-                )
+                logger.error('Возникла ошибка при отправке уведомления через телеграм', msg=msg, chat_id=notif.chat_id)
 
     async def notify(self, new_episodes: t.Tuple[UpdatedTvShow, ...]):
         if not new_episodes:
@@ -99,6 +97,4 @@ class TelegramNotification(BaseNotification):
 
         logger.info('Начинаем рассылать уведомления через telegram', new_episodes=new_episodes)
         notifications = await self._get_notification_data(new_episodes)
-        await asyncio.get_event_loop().run_in_executor(
-            None, lambda: self._send(notifications)
-        )
+        await asyncio.get_event_loop().run_in_executor(None, lambda: self._send(notifications))

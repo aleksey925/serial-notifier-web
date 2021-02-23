@@ -4,7 +4,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from structlog import get_logger
 
-from db import init_db, close_db
+from db import close_db, init_db
 from logger import init_logger
 from updater.update_fetcher import UpdateService
 

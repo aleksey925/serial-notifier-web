@@ -1,68 +1,63 @@
 import typing as t
 
 import psycopg2.errors
+from serial_notifier_schema.tv_show import UserEpisodeReqSchema, UserEpisodeRespSchema
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from structlog import get_logger
 
 from apps.common.exceptions import ObjectDoesNotExist
 from db import get_db
-from models import episode_table, tv_show_table, user_table, tracked_tv_show_table, user_episode_table, UserEpisode
-from serial_notifier_schema.tv_show import UserEpisodeReqSchema, UserEpisodeRespSchema
+from models import UserEpisode, episode_table, tracked_tv_show_table, tv_show_table, user_episode_table, user_table
 
 logger = get_logger(__name__)
 
 
 class TvShowService:
-
     def __init__(self):
         self.db = get_db()
 
     async def _get_tv_show(self, user_id: int) -> t.Tuple[dict, ...]:
-        all_tv_show_stmt = select([
-            tv_show_table.c.name,
-            episode_table.c.id.label('episode_id'),
-            episode_table.c.season_number,
-            episode_table.c.episode_number
-        ]).where(
-            user_table.c.id == user_id
-        ).select_from(
-            user_table.join(
-                tracked_tv_show_table,
-                tracked_tv_show_table.c.id_user == user_table.c.id
-            ).join(
-                tv_show_table,
-                tv_show_table.c.id == tracked_tv_show_table.c.id_tv_show
-            ).join(
-                episode_table, episode_table.c.id_tv_show == tv_show_table.c.id
+        all_tv_show_stmt = (
+            select(
+                [
+                    tv_show_table.c.name,
+                    episode_table.c.id.label('episode_id'),
+                    episode_table.c.season_number,
+                    episode_table.c.episode_number,
+                ]
             )
-        ).cte('all_tv_show')
+            .where(user_table.c.id == user_id)
+            .select_from(
+                user_table.join(tracked_tv_show_table, tracked_tv_show_table.c.id_user == user_table.c.id)
+                .join(tv_show_table, tv_show_table.c.id == tracked_tv_show_table.c.id_tv_show)
+                .join(episode_table, episode_table.c.id_tv_show == tv_show_table.c.id)
+            )
+            .cte('all_tv_show')
+        )
 
-        looked_episodes_stmt = select([
-            episode_table.c.id.label('episode_id'),
-            user_episode_table.c.looked
-        ]).where(
-            user_table.c.id == user_id
-        ).select_from(
-            user_table.join(
-                user_episode_table,
-                user_episode_table.c.id_user == user_table.c.id
-            ).join(
-                episode_table,
-                episode_table.c.id == user_episode_table.c.id_episode
+        looked_episodes_stmt = (
+            select([episode_table.c.id.label('episode_id'), user_episode_table.c.looked])
+            .where(user_table.c.id == user_id)
+            .select_from(
+                user_table.join(user_episode_table, user_episode_table.c.id_user == user_table.c.id).join(
+                    episode_table, episode_table.c.id == user_episode_table.c.id_episode
+                )
             )
-        ).cte('looked_episodes')
+            .cte('looked_episodes')
+        )
 
         res = await self.db.fetch_all(
-            select([
-                all_tv_show_stmt.c.name,
-                all_tv_show_stmt.c.season_number,
-                all_tv_show_stmt.c.episode_number,
-                looked_episodes_stmt.c.looked
-            ]).select_from(
+            select(
+                [
+                    all_tv_show_stmt.c.name,
+                    all_tv_show_stmt.c.season_number,
+                    all_tv_show_stmt.c.episode_number,
+                    looked_episodes_stmt.c.looked,
+                ]
+            ).select_from(
                 all_tv_show_stmt.outerjoin(
-                    looked_episodes_stmt,
-                    all_tv_show_stmt.c.episode_id == looked_episodes_stmt.c.episode_id
+                    looked_episodes_stmt, all_tv_show_stmt.c.episode_id == looked_episodes_stmt.c.episode_id
                 )
             )
         )
@@ -100,8 +95,7 @@ class TvShowService:
                 insert(user_episode_table)
                 .values(**inserted_data)
                 .on_conflict_do_update(
-                    constraint='constraint_unique_episode_for_user',
-                    set_={'looked': inserted_data['looked']}
+                    constraint='constraint_unique_episode_for_user', set_={'looked': inserted_data['looked']}
                 )
                 .returning(
                     UserEpisode.id,
@@ -115,4 +109,4 @@ class TvShowService:
         except psycopg2.errors.ForeignKeyViolation as exc:
             error_msg = str(exc)
             logger.warn('Не удалось записать/обновить доп. информацию об эпизоде', error_msg=error_msg)
-            raise ObjectDoesNotExist(error_msg[error_msg.find('DETAIL: '):].strip())
+            raise ObjectDoesNotExist(error_msg[error_msg.find('DETAIL: ') :].strip())

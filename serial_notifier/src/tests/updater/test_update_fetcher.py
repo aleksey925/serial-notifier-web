@@ -5,12 +5,7 @@ from aioresponses import aioresponses
 
 from db import UpdatedTvShow
 from models import Episode
-from updater.update_fetcher import (
-    UpdateFetcher,
-    EpisodesStruct,
-    TvShowUpdater,
-    TvShowMemoryStorage,
-)
+from updater.update_fetcher import EpisodesStruct, TvShowMemoryStorage, TvShowUpdater, UpdateFetcher
 
 
 @pytest.mark.asyncio
@@ -25,9 +20,7 @@ async def test_downloader__start_download__return_downloaded_pages(mocker_source
             EpisodesStruct(2, {'episodes': [15], 'season': 6}),
             EpisodesStruct(1, {'episodes': [15], 'season': 10}),
         ],
-        'seasonvar': [
-            EpisodesStruct(2, {'episodes': [15], 'season': 6})
-        ]
+        'seasonvar': [EpisodesStruct(2, {'episodes': [15], 'season': 6})],
     }
 
 
@@ -43,7 +36,6 @@ async def test_downloader__send_empty_source_list__return_empty_dict():
 
 @pytest.mark.asyncio
 class TestTvShowMemoryStorage:
-
     async def test_find_new_episode(self, db_session):
         fetched_episodes = {
             'filmix': [
@@ -53,8 +45,8 @@ class TestTvShowMemoryStorage:
             ],
             'seasonvar': [
                 EpisodesStruct(1, {'episodes': [1], 'season': 10}),
-                EpisodesStruct(2, {'episodes': [5], 'season': 6})
-            ]
+                EpisodesStruct(2, {'episodes': [5], 'season': 6}),
+            ],
         }
 
         storage = TvShowMemoryStorage(db_session)
@@ -69,21 +61,12 @@ class TestTvShowMemoryStorage:
             {'id_tv_show': 1, 'episode_number': 15, 'season_number': 1},
             {'id_tv_show': 1, 'episode_number': 1, 'season_number': 10},
         ]
-        assert all_tv_show_before == {
-            1: {1: {1, 2}},
-            3: {3: {1, 2}},
-            2: {6: {4}}
-        }
-        assert all_tv_show_after == {
-            1: {1: {1, 2, 15}, 10: {1}},
-            3: {3: {1, 2, 3}},
-            2: {6: {4, 5, 6}}
-        }
+        assert all_tv_show_before == {1: {1: {1, 2}}, 3: {3: {1, 2}}, 2: {6: {4}}}
+        assert all_tv_show_after == {1: {1: {1, 2, 15}, 10: {1}}, 3: {3: {1, 2, 3}}, 2: {6: {4, 5, 6}}}
 
 
 @pytest.mark.asyncio
 class TestTvShowUpdater:
-
     async def test_start__new_episodes_released__db_updated(self, db_session, mocker_source_responses):
         mocker_source_responses()
         expect_inserted_episodes = (

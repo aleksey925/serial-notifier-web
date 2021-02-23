@@ -5,14 +5,11 @@ import pytest
 from asynctest import patch
 from fastapi import Depends
 
-from apps.auth.security import get_current_user, create_access_token
+from apps.auth.security import create_access_token, get_current_user
 from config import get_config
 from models import User
 
-VALID_LOGIN_DATA = {
-    'email': 'dima@ya.ru',
-    'password': '123'
-}
+VALID_LOGIN_DATA = {'email': 'dima@ya.ru', 'password': '123'}
 
 VALID_REG_DATA = {
     'email': 'dima@ya.ru',
@@ -31,10 +28,8 @@ TOKEN = (
 
 @pytest.mark.asyncio
 class TestAuth:
-
     @pytest.yield_fixture
     def private_view(self, app):
-
         @app.get('/test-view/')
         def test_view(user: User = Depends(get_current_user)):
             return {'status': 'ok'}
@@ -43,7 +38,7 @@ class TestAuth:
 
     @patch('apps.auth.service.create_access_token')
     async def test_get_token__send_req_with_valid_data__success(
-            self, create_access_token_mock, async_client, db_session
+        self, create_access_token_mock, async_client, db_session
     ):
         expected = {'access_token': TOKEN, 'token_type': 'bearer'}
         create_access_token_mock.return_value = TOKEN
@@ -110,15 +105,7 @@ async def test_registration__send_valid_data__success(async_client, db_session):
 async def test_registration__send_data_existed_user__return_validation_error(async_client, db_session):
     reg_data = copy(VALID_REG_DATA)
     reg_data['email'] = 'test@ya.ru'
-    expected = {
-        'detail': [
-            {
-                'loc': ['body', 'email'],
-                'msg': 'Not unique value',
-                'type': 'value_error.not_unique'
-            }
-        ]
-    }
+    expected = {'detail': [{'loc': ['body', 'email'], 'msg': 'Not unique value', 'type': 'value_error.not_unique'}]}
 
     resp = await async_client.post('/user/', data=json.dumps(reg_data))
 
@@ -131,13 +118,7 @@ async def test_registration__send_data_existed_user__return_validation_error(asy
 async def test_registration__send_req_without_not_required_data__success(async_client, db_session, req_filed):
     valid_reg_data = copy(VALID_REG_DATA)
     valid_reg_data.pop(req_filed)
-    expected_resp = {
-        'email': 'dima@ya.ru',
-        'name': 'Дима',
-        'nick': 'dima',
-        'sex': 'male',
-        'surname': 'Иванов'
-    }
+    expected_resp = {'email': 'dima@ya.ru', 'name': 'Дима', 'nick': 'dima', 'sex': 'male', 'surname': 'Иванов'}
     expected_resp[req_filed] = None
 
     user_before = await db_session.query(User).filter(User.email == VALID_REG_DATA['email']).one_or_none()

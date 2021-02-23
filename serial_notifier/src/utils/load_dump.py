@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
 from db import close_db, init_db
-from models import TvShow, Episode, UserEpisode, User, SourceInfo, Source, tracked_tv_show_table
+from models import Episode, Source, SourceInfo, TvShow, User, UserEpisode, tracked_tv_show_table
 
 USER_ID = 1
 
@@ -24,9 +24,7 @@ async def insert_user(db):
 
 async def insert_tv_show(db, dump):
     all_tv_show_names = [{'name': i} for i in dump['all_tv_show'].keys()]
-    inserted_tv_show = await db.fetch_all(
-        insert(TvShow).values(all_tv_show_names).returning(TvShow.id, TvShow.name)
-    )
+    inserted_tv_show = await db.fetch_all(insert(TvShow).values(all_tv_show_names).returning(TvShow.id, TvShow.name))
     return {i.name: i.id for i in inserted_tv_show}
 
 
@@ -49,14 +47,15 @@ async def insert_episode(db, dump, tv_show_map):
 
 async def insert_user_episode(db, dump, tv_show_map):
     eps_info = await db.fetch_all(
-        select([
-            TvShow.id.label('tv_show_id'), TvShow.name, Episode.id.label('episode_id'), Episode.episode_number, Episode.season_number
-        ]).select_from(
-            Episode.__table__.join(
-                TvShow,
-                Episode.id_tv_show == TvShow.id
-            )
-        )
+        select(
+            [
+                TvShow.id.label('tv_show_id'),
+                TvShow.name,
+                Episode.id.label('episode_id'),
+                Episode.episode_number,
+                Episode.season_number,
+            ]
+        ).select_from(Episode.__table__.join(TvShow, Episode.id_tv_show == TvShow.id))
     )
     inserted_episodes = {}
     for i in eps_info:
@@ -72,7 +71,9 @@ async def insert_user_episode(db, dump, tv_show_map):
                 user_episodes_data.append(
                     {
                         'id_user': USER_ID,
-                        'id_episode': inserted_episodes[f'{tv_show_map[tv_show_name]},{episode_number},{season_number}'],
+                        'id_episode': inserted_episodes[
+                            f'{tv_show_map[tv_show_name]},{episode_number},{season_number}'
+                        ],
                         'looked': True,
                     }
                 )
@@ -97,16 +98,12 @@ async def insert_source(db, dump, tv_show_map):
             }
         )
 
-    await db.execute(
-        insert(Source).values(source_data)
-    )
+    await db.execute(insert(Source).values(source_data))
 
 
 async def insert_tracked_tv_show(db, dump, tv_show_map):
     data = [{'id_user': USER_ID, 'id_tv_show': i} for i in tv_show_map.values()]
-    await db.execute(
-        insert(tracked_tv_show_table).values(data)
-    )
+    await db.execute(insert(tracked_tv_show_table).values(data))
 
 
 async def load(db, dump):

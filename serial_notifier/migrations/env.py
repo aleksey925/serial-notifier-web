@@ -29,10 +29,7 @@ target_metadata = models.Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-config.set_main_option(
-    'sqlalchemy.url',
-    app_config.get_config().DATABASE_URI.replace('postgresql+aiopg', 'postgresql')
-)
+config.set_main_option('sqlalchemy.url', app_config.get_config().DATABASE_URI.replace('postgresql+aiopg', 'postgresql'))
 
 
 def run_migrations_offline():
@@ -76,7 +73,7 @@ def run_migrations_online():
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            render_as_batch=connectable.url.drivername == 'sqlite'
+            render_as_batch=connectable.url.drivername == 'sqlite',
         )
 
         with context.begin_transaction():

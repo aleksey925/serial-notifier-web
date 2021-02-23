@@ -1,13 +1,12 @@
 import pytest
 from asynctest import patch
 
-from updater.notification.telegram import TelegramNotification, NotificationData
+from updater.notification.telegram import NotificationData, TelegramNotification
 from updater.update_fetcher import TvShowUpdater
 
 
 @pytest.mark.asyncio
 class TestTelegramNotification:
-
     @pytest.fixture
     async def new_episodes(self, db_session):
         episodes = (
@@ -26,25 +25,50 @@ class TestTelegramNotification:
 
         assert tuple(notifications) == (
             NotificationData(
-                tv_show_id=3, tv_show_name='Звездный путь', id_episode=updated_tv_show['3,3,3'].id_episode,
-                episode_number=3, season_number=3, id_user=1, chat_id=564346
+                tv_show_id=3,
+                tv_show_name='Звездный путь',
+                id_episode=updated_tv_show['3,3,3'].id_episode,
+                episode_number=3,
+                season_number=3,
+                id_user=1,
+                chat_id=564346,
             ),
             NotificationData(
-                tv_show_id=3, tv_show_name='Звездный путь', id_episode=updated_tv_show['3,4,3'].id_episode,
-                episode_number=4, season_number=3, id_user=1, chat_id=564346
+                tv_show_id=3,
+                tv_show_name='Звездный путь',
+                id_episode=updated_tv_show['3,4,3'].id_episode,
+                episode_number=4,
+                season_number=3,
+                id_user=1,
+                chat_id=564346,
             ),
             NotificationData(
-                tv_show_id=1, tv_show_name='Ходячие мертвецы', id_episode=updated_tv_show['1,3,1'].id_episode,
-                episode_number=3, season_number=1, id_user=1, chat_id=564346
+                tv_show_id=1,
+                tv_show_name='Ходячие мертвецы',
+                id_episode=updated_tv_show['1,3,1'].id_episode,
+                episode_number=3,
+                season_number=1,
+                id_user=1,
+                chat_id=564346,
             ),
             NotificationData(
-                tv_show_id=3, tv_show_name='Звездный путь', id_episode=updated_tv_show['3,3,3'].id_episode,
-                episode_number=3, season_number=3, id_user=3, chat_id=444356
+                tv_show_id=3,
+                tv_show_name='Звездный путь',
+                id_episode=updated_tv_show['3,3,3'].id_episode,
+                episode_number=3,
+                season_number=3,
+                id_user=3,
+                chat_id=444356,
             ),
             NotificationData(
-                tv_show_id=3, tv_show_name='Звездный путь', id_episode=updated_tv_show['3,4,3'].id_episode,
-                episode_number=4, season_number=3, id_user=3, chat_id=444356
-            )
+                tv_show_id=3,
+                tv_show_name='Звездный путь',
+                id_episode=updated_tv_show['3,4,3'].id_episode,
+                episode_number=4,
+                season_number=3,
+                id_user=3,
+                chat_id=444356,
+            ),
         )
 
     @patch('updater.notification.telegram.TeleBot')
@@ -63,7 +87,12 @@ class TestTelegramNotification:
 
     async def test_generate_keyboard(self):
         looked_callback_data = {
-            'user_id': 1, 'tv_show_id': 3, 'id_episode': 45, 'episode_number': 3, 'season_number': 3, 'looked': True
+            'user_id': 1,
+            'tv_show_id': 3,
+            'id_episode': 45,
+            'episode_number': 3,
+            'season_number': 3,
+            'looked': True,
         }
         not_looked_callback_data = looked_callback_data.copy()
         not_looked_callback_data['looked'] = False
@@ -74,7 +103,7 @@ class TestTelegramNotification:
             episode_number=looked_callback_data['episode_number'],
             season_number=looked_callback_data['season_number'],
             id_user=looked_callback_data['user_id'],
-            chat_id=564346
+            chat_id=564346,
         )
 
         keyboard = TelegramNotification(None)._generate_keyboard(notif_data)

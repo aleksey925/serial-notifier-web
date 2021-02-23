@@ -3,18 +3,16 @@ import sqlalchemy.orm.exc
 from structlog import get_logger
 
 from apps.auth.exceptions import CredentialsNotValid, UserAlreadyExists
-from apps.auth.security import create_access_token
-from apps.auth.security import hashing_password, check_password
+from apps.auth.security import check_password, create_access_token, hashing_password
 from config import get_config
 from db import get_db
-from models import user_table, User
+from models import User, user_table
 
 config = get_config()
 logger = get_logger('auth')
 
 
 class AccountService:
-
     def __init__(self):
         self.db = get_db()
 
@@ -22,21 +20,19 @@ class AccountService:
         data['password'] = hashing_password(data['password'])
         try:
             new_user = await self.db.fetch_one(
-                user_table
-                .insert()
+                user_table.insert()
                 .values(**data)
                 .returning(
-                    user_table.c.id, user_table.c.email, user_table.c.sex, user_table.c.nick,
-                    user_table.c.name, user_table.c.surname
+                    user_table.c.id,
+                    user_table.c.email,
+                    user_table.c.sex,
+                    user_table.c.nick,
+                    user_table.c.name,
+                    user_table.c.surname,
                 )
             )
         except psycopg2.errors.UniqueViolation as exc:
-            logger.warn(
-                'Не удалось создать нового пользователя',
-                email=data['email'],
-                nick=data['nick'],
-                exc_info=True
-            )
+            logger.warn('Не удалось создать нового пользователя', email=data['email'], nick=data['nick'], exc_info=True)
             not_uniq_field = exc.diag.constraint_name.replace(f'{exc.diag.table_name}_', '').replace('_key', '')
             raise UserAlreadyExists(not_uniq_field) from exc
 

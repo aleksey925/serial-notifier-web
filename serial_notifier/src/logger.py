@@ -13,9 +13,7 @@ simple_processors = [
     structlog.dev.ConsoleRenderer(),
 ]
 
-simple_formatter = logging.Formatter(
-    '%(levelname)s %(asctime)s - %(module)s:%(lineno)d - %(message)s'
-)
+simple_formatter = logging.Formatter('%(levelname)s %(asctime)s - %(module)s:%(lineno)d - %(message)s')
 
 
 def _init_structlog(processors):

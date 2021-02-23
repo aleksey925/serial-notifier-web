@@ -1,3 +1,7 @@
+DOCKER_COMPOSE_PROD = -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.override.yml
+AUTOFLAKE_EXCLUDE = .git,venv,volumes
+
+
 build-base-img:
 	cd .. \
 	&& docker build \
@@ -20,13 +24,13 @@ run-dev:
 
 
 run:
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.override.yml up -d
+	docker-compose ${DOCKER_COMPOSE_PROD} up -d
 
 ps:
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.override.yml ps
+	docker-compose ${DOCKER_COMPOSE_PROD} ps
 
 stop:
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.prod.yml -f docker-compose.override.yml stop
+	docker-compose ${DOCKER_COMPOSE_PROD} -f docker-compose.dev.yml stop
 
 
 beauty_check:
@@ -35,7 +39,7 @@ beauty_check:
 		-r \
 		--remove-all-unused-imports \
 		--ignore-init-module-imports \
-		--exclude=.git,venv,alembic,volumes . && \
+		--exclude=${AUTOFLAKE_EXCLUDE} . && \
 	isort --diff . && \
 	black --diff .
 
@@ -45,6 +49,6 @@ beautify:
 		--in-place \
 		--remove-all-unused-imports \
 		--ignore-init-module-imports \
-		--exclude=.git,venv,alembic,volumes . && \
+		--exclude=${AUTOFLAKE_EXCLUDE} . && \
 	isort . && \
 	black .

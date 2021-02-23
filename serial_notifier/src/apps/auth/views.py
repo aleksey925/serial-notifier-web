@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
+from serial_notifier_schema.auth import LoginReqSchema, RegistrationReqSchema, RegistrationRespSchema, TokenRespSchema
 
 from apps.auth.exceptions import LoginException, UserAlreadyExists
-from serial_notifier_schema.auth import LoginReqSchema, TokenRespSchema, RegistrationReqSchema, RegistrationRespSchema
 from apps.auth.service import AccountService
 
 router = APIRouter()
@@ -34,7 +34,7 @@ async def reg_new_user(payload: RegistrationReqSchema):
                     'msg': 'Not unique value',
                     'type': 'value_error.not_unique',
                 }
-            ]
+            ],
         )
 
     return new_user

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from apps.auth.routes import init_routes as auth_init_routes
 from apps.tv_show.routes import init_routes as tv_show_init_routes
-from db import init_db, close_db
+from db import close_db, init_db
 from logger import init_logger
 
 

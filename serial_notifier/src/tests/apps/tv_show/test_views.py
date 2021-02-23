@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from models import UserEpisode, Episode
+from models import Episode, UserEpisode
 
 
 @pytest.mark.asyncio
@@ -12,12 +12,8 @@ async def test_tv_show_all__get_all_tracked_tv_show_with_status__success(async_c
 
     assert resp_json == {
         'tv_shows': {
-            'Ходячие мертвецы': {
-                '1': {'1': True, '2': False}
-            },
-            'Звездный путь': {
-                '3': {'1': True, '2': False}
-            }
+            'Ходячие мертвецы': {'1': {'1': True, '2': False}},
+            'Звездный путь': {'3': {'1': True, '2': False}},
         }
     }
 
@@ -41,17 +37,20 @@ async def test_tv_show_all__send_req_without_token__return_401(async_client, db_
 
 @pytest.mark.asyncio
 class TestUpdateUserEpisode:
-
     async def test_create_new_record__success(self, async_client, db_session, headers_user1):
         id_user = 1
         data = {
             'id_episode': 121,
             'looked': True,
         }
-        usr_episode_before = await db_session.query(UserEpisode).filter_by(
-            id_user=id_user,
-            id_episode=data['id_episode'],
-        ).one_or_none()
+        usr_episode_before = (
+            await db_session.query(UserEpisode)
+            .filter_by(
+                id_user=id_user,
+                id_episode=data['id_episode'],
+            )
+            .one_or_none()
+        )
 
         resp = await async_client.post(
             f'/tv_show/episode/{data["id_episode"]}/',
@@ -60,10 +59,14 @@ class TestUpdateUserEpisode:
         )
         resp_data = resp.json()
 
-        usr_episode_after = await db_session.query(UserEpisode).filter_by(
-            id_user=id_user,
-            id_episode=data['id_episode'],
-        ).one_or_none()
+        usr_episode_after = (
+            await db_session.query(UserEpisode)
+            .filter_by(
+                id_user=id_user,
+                id_episode=data['id_episode'],
+            )
+            .one_or_none()
+        )
 
         assert resp.status_code == 200
         assert usr_episode_before is None
@@ -80,10 +83,14 @@ class TestUpdateUserEpisode:
             'id_episode': 111,
             'looked': False,
         }
-        usr_episode_before = await db_session.query(UserEpisode).filter_by(
-            id_user=id_user,
-            id_episode=data['id_episode'],
-        ).one()
+        usr_episode_before = (
+            await db_session.query(UserEpisode)
+            .filter_by(
+                id_user=id_user,
+                id_episode=data['id_episode'],
+            )
+            .one()
+        )
 
         resp = await async_client.post(
             f'/tv_show/episode/{data["id_episode"]}/',
@@ -92,10 +99,14 @@ class TestUpdateUserEpisode:
         )
         resp_data = resp.json()
 
-        usr_episode_after = await db_session.query(UserEpisode).filter_by(
-            id_user=id_user,
-            id_episode=data['id_episode'],
-        ).one()
+        usr_episode_after = (
+            await db_session.query(UserEpisode)
+            .filter_by(
+                id_user=id_user,
+                id_episode=data['id_episode'],
+            )
+            .one()
+        )
 
         assert resp.status_code == 200
         assert usr_episode_before.looked is True
@@ -132,10 +143,14 @@ class TestUpdateUserEpisode:
             'id_episode': 111,
             'looked': False,
         }
-        usr_episode_before = await db_session.query(UserEpisode).filter_by(
-            id_user=id_user,
-            id_episode=data['id_episode'],
-        ).one()
+        usr_episode_before = (
+            await db_session.query(UserEpisode)
+            .filter_by(
+                id_user=id_user,
+                id_episode=data['id_episode'],
+            )
+            .one()
+        )
 
         resp = await async_client.post(
             f'/tv_show/episode/{data["id_episode"]}/',
@@ -143,10 +158,14 @@ class TestUpdateUserEpisode:
         )
         resp_data = resp.json()
 
-        usr_episode_after = await db_session.query(UserEpisode).filter_by(
-            id_user=id_user,
-            id_episode=data['id_episode'],
-        ).one()
+        usr_episode_after = (
+            await db_session.query(UserEpisode)
+            .filter_by(
+                id_user=id_user,
+                id_episode=data['id_episode'],
+            )
+            .one()
+        )
 
         assert resp.status_code == 401
         assert resp_data == {'detail': 'Not authenticated'}

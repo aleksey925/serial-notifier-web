@@ -4,9 +4,9 @@ from httpx import AsyncClient
 from sqlalchemy import create_engine
 
 from apps.auth.security import create_access_token
-from apps.common.database import create_db, drop_db, apply_migrations, load_data
+from apps.common.database import apply_migrations, create_db, drop_db, load_data
 from config import get_config
-from db import close_db, init_db, get_db
+from db import close_db, get_db, init_db
 from main import app_factory
 
 
@@ -26,10 +26,15 @@ def init_test_db():
             db_session,
             config.FIXTURES_PATH,
             [
-                'user.json', 'tv_show.json', 'episode.json',
-                'tracked_tv_show.json', 'user_episode.json',
-                'source_info.json', 'source.json', 'telegram_acc.json',
-            ]
+                'user.json',
+                'tv_show.json',
+                'episode.json',
+                'tracked_tv_show.json',
+                'user_episode.json',
+                'source_info.json',
+                'source.json',
+                'telegram_acc.json',
+            ],
         )
         tx.commit()
 
@@ -80,9 +85,7 @@ def token_user1():
 
 @pytest.fixture
 def headers_user1(token_user1):
-    return {
-        'Authorization': f'Bearer {token_user1}'
-    }
+    return {'Authorization': f'Bearer {token_user1}'}
 
 
 @pytest.fixture
@@ -92,6 +95,4 @@ def token_user2():
 
 @pytest.fixture
 def headers_user2(token_user2):
-    return {
-        'Authorization': f'Bearer {token_user2}'
-    }
+    return {'Authorization': f'Bearer {token_user2}'}

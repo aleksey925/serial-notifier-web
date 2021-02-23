@@ -22,8 +22,14 @@ def apply_migrations(root_dir):
     next(logger_cleaner)
 
     try:
-        alembic_commands(argv=('--raiseerr', 'upgrade', 'head',))
-    except Exception as err:
+        alembic_commands(
+            argv=(
+                '--raiseerr',
+                'upgrade',
+                'head',
+            )
+        )
+    except Exception:
         next(logger_cleaner)
         logging.getLogger().warning('Возникла ошибка при попытке применить миграции', exc_info=True)
         raise
@@ -46,11 +52,13 @@ def drop_db(default_db_uri, db_name):
 
     with engine.connect() as conn:
         # terminate all connections to be able to drop database
-        conn.execute(f"""
+        conn.execute(
+            f"""
             SELECT pg_terminate_backend(pg_stat_activity.pid)
             FROM pg_stat_activity
             WHERE pg_stat_activity.datname = '{db_name}'
-                AND pid <> pg_backend_pid();""")
+                AND pid <> pg_backend_pid();"""
+        )
         conn.execute(f'DROP DATABASE IF EXISTS {db_name}')
 
 
@@ -66,7 +74,7 @@ def _update_sequence(db_session, auto_inc_cols):
                 f"""
                 SELECT setval(
                     pg_get_serial_sequence('{table_name}', '{col}'),
-                    coalesce(max("{col}"), 1), 
+                    coalesce(max("{col}"), 1),
                     max("{col}") IS NOT null
                 )
                 FROM "{table_name}";"""
@@ -87,15 +95,10 @@ def load_data(db_session, base_path, loaded_files):
         auto_inc_cols = {}
         for rec in json.loads(open(fixture_path).read()):
             idx_start_table = rec['table'].rfind('.')
-            table = (
-                rec['table'][:idx_start_table],
-                rec['table'][idx_start_table + 1:]
-            )
+            table = (rec['table'][:idx_start_table], rec['table'][idx_start_table + 1 :])
 
             records.setdefault(table, []).append(rec['fields'])
-            auto_inc_cols.setdefault(table, []).extend(
-                rec['auto_inc_fields']
-            )
+            auto_inc_cols.setdefault(table, []).extend(rec['auto_inc_fields'])
 
         for table, data in records.items():
             module_path, table_name = table

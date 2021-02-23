@@ -1,9 +1,9 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import (
-    Column, Integer, DateTime, Enum as SaEnum, Unicode, Boolean, ForeignKey, UnicodeText, UniqueConstraint, Table
-)
+from sqlalchemy import Boolean, Column, DateTime
+from sqlalchemy import Enum as SaEnum
+from sqlalchemy import ForeignKey, Integer, Table, Unicode, UnicodeText, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -18,7 +18,7 @@ class Sex(enum.Enum):
 class User(Base):
     __tablename__ = 'user'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # noqa: A003
     sex = Column(SaEnum(*[i.value for i in Sex], name='sex'))
     nick = Column(Unicode(length=50), unique=True, nullable=False)
     name = Column(Unicode(length=50))
@@ -37,7 +37,7 @@ tracked_tv_show_table = Table(
     'tracked_tv_show',
     metadata,
     Column('id_user', Integer, ForeignKey('user.id')),
-    Column('id_tv_show', Integer, ForeignKey('tv_show.id'))
+    Column('id_tv_show', Integer, ForeignKey('tv_show.id')),
 )
 
 
@@ -47,14 +47,14 @@ tv_show_notification_table = Table(
     'tv_show_notification',
     metadata,
     Column('id_user', Integer, ForeignKey('user.id')),
-    Column('id_episode', Integer, ForeignKey('episode.id'))
+    Column('id_episode', Integer, ForeignKey('episode.id')),
 )
 
 
 class TvShow(Base):
     __tablename__ = 'tv_show'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # noqa: A003
     name = Column(Unicode(150), nullable=False)
     cover = Column(Unicode(300))
     description = Column(UnicodeText())
@@ -69,7 +69,7 @@ class Episode(Base):
         UniqueConstraint('id_tv_show', 'episode_number', 'season_number', name='constraint_unique_episode'),
     )
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # noqa: A003
     id_tv_show = Column(Integer, ForeignKey('tv_show.id'), nullable=False)
     episode_number = Column(Integer, nullable=False)
     season_number = Column(Integer, nullable=False)
@@ -84,11 +84,9 @@ class UserEpisode(Base):
     """
 
     __tablename__ = 'user_episode'
-    __table_args__ = (
-        UniqueConstraint('id_user', 'id_episode', name='constraint_unique_episode_for_user'),
-    )
+    __table_args__ = (UniqueConstraint('id_user', 'id_episode', name='constraint_unique_episode_for_user'),)
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # noqa: A003
     id_user = Column(Integer, ForeignKey('user.id'), nullable=False)
     id_episode = Column(Integer, ForeignKey('episode.id'), nullable=False)
     looked = Column(Boolean(), default=False)
@@ -100,7 +98,7 @@ user_episode_table = UserEpisode.__table__
 class SourceInfo(Base):
     __tablename__ = 'source_info'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # noqa: A003
     site_name = Column(Unicode(length=15), nullable=False)
     encoding = Column(Unicode(length=10))
 
@@ -111,7 +109,7 @@ source_info_table = SourceInfo.__table__
 class Source(Base):
     __tablename__ = 'source'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # noqa: A003
     id_tv_show = Column(Integer, ForeignKey('tv_show.id'), nullable=False)
     id_source_info = Column(Integer, ForeignKey('source_info.id'), nullable=False)
     url = Column(Unicode(length=300), nullable=False)
@@ -123,7 +121,7 @@ source_table = Source.__table__
 class TelegramAcc(Base):
     __tablename__ = 'telegram_acc'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)  # noqa: A003
     id_user = Column(Integer, ForeignKey('user.id'), nullable=False)
     chat_id = Column(Integer, nullable=False)
     username = Column(Unicode(length=30), nullable=False)

@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 from structlog import get_logger
 
 from db import UpdatedTvShow, get_db
-from models import episode_table, source_table, source_info_table, Episode
+from models import Episode, episode_table, source_info_table, source_table
 from updater.notification.telegram import TelegramNotification
 from updater.parsers import parsers
 
@@ -23,7 +23,7 @@ class EpisodesStruct:
 
 @dataclass
 class SourceData:
-    id: int
+    id: int  # noqa: A003
     id_tv_show: int
     site_name: str
     url: str
@@ -31,29 +31,18 @@ class SourceData:
 
 
 class UpdateFetcher:
-
     def __init__(self, source_list: t.List[SourceData]):
         super().__init__()
         self._source_list = source_list
 
-    async def _fetch(
-            self,
-            session,
-            store: dict,
-            site_name: str,
-            id_tv_show: int,
-            url: str,
-            encoding: t.Optional[str]
-    ):
+    async def _fetch(self, session, store: dict, site_name: str, id_tv_show: int, url: str, encoding: t.Optional[str]):
         async with session.get(url, allow_redirects=True) as resp:
             if resp.status != 200:
                 logger.warn('При загрузке страницы возникли проблемы,', url=url, status_code=resp.status)
                 return
 
             page = await resp.text(encoding=encoding)
-            store[site_name].append(
-                EpisodesStruct(id_tv_show, parsers[site_name](page))
-            )
+            store[site_name].append(EpisodesStruct(id_tv_show, parsers[site_name](page)))
 
     async def _fetch_wrapper(self, semaphore, **kwargs):
         try:
@@ -62,9 +51,9 @@ class UpdateFetcher:
         except ValueError:
             logger.warn(f'URL {kwargs["url"]} имеет неправильный формат', exc_info=True)
         except aiohttp.ClientConnectionError:
-            logger.warn(f'Невозможно установить соединение', url=kwargs["url"])
+            logger.warn('Невозможно установить соединение', url=kwargs["url"])
         except Exception:
-            logger.warn(f'Возникла непредвиденная ошибка при подключении', url=kwargs["url"], exc_info=True)
+            logger.warn('Возникла непредвиденная ошибка при подключении', url=kwargs["url"], exc_info=True)
 
     async def _wrapper_for_tasks(self, store: dict):
         tasks = []
@@ -82,7 +71,7 @@ class UpdateFetcher:
                         site_name=source.site_name,
                         id_tv_show=source.id_tv_show,
                         url=source.url,
-                        encoding=source.encoding
+                        encoding=source.encoding,
                     )
                 )
 
@@ -109,7 +98,7 @@ class TvShowMemoryStorage(object):
 
     def __init__(self, db_session):
         self.db_session = db_session
-        self.storage: t.Dict[int: t.Dict[int, set]] = {}
+        self.storage: t.Dict[int : t.Dict[int, set]] = {}
 
     async def get_all_tv_show(self):
         if self.storage:
@@ -141,11 +130,13 @@ class TvShowMemoryStorage(object):
                 stored_tv_show = self.storage.get(episode_inf.id_tv_show)
                 if not stored_tv_show:
                     for i in episode_inf.episode_info['episodes']:
-                        all_updated_episodes.append({
-                            'id_tv_show': episode_inf.id_tv_show,
-                            'episode_number': i,
-                            'season_number': episode_inf.episode_info['season'],
-                        })
+                        all_updated_episodes.append(
+                            {
+                                'id_tv_show': episode_inf.id_tv_show,
+                                'episode_number': i,
+                                'season_number': episode_inf.episode_info['season'],
+                            }
+                        )
                     self._update_tv_show(
                         self.storage,
                         episode_inf.id_tv_show,
@@ -158,40 +149,35 @@ class TvShowMemoryStorage(object):
                 new_episodes = set(episode_inf.episode_info['episodes']) - stored_episodes
                 if new_episodes:
                     for i in new_episodes:
-                        all_updated_episodes.append({
-                            'id_tv_show': episode_inf.id_tv_show,
-                            'episode_number': i,
-                            'season_number': episode_inf.episode_info['season'],
-                        })
+                        all_updated_episodes.append(
+                            {
+                                'id_tv_show': episode_inf.id_tv_show,
+                                'episode_number': i,
+                                'season_number': episode_inf.episode_info['season'],
+                            }
+                        )
                     self._update_tv_show(
-                        self.storage,
-                        episode_inf.id_tv_show,
-                        episode_inf.episode_info['season'],
-                        new_episodes
+                        self.storage, episode_inf.id_tv_show, episode_inf.episode_info['season'], new_episodes
                     )
 
         return all_updated_episodes
 
 
 class TvShowUpdater:
-
     def __init__(self, db_session):
         self.db_session = db_session
 
     @staticmethod
     async def get_source_list(conn) -> t.List[SourceData]:
-        source_stmt = select([
-            source_table.c.id,
-            source_table.c.id_tv_show,
-            source_info_table.c.site_name,
-            source_table.c.url,
-            source_info_table.c.encoding,
-        ]).select_from(
-            source_table.join(
-                source_info_table,
-                source_info_table.c.id == source_table.c.id_source_info
-            )
-        )
+        source_stmt = select(
+            [
+                source_table.c.id,
+                source_table.c.id_tv_show,
+                source_info_table.c.site_name,
+                source_table.c.url,
+                source_info_table.c.encoding,
+            ]
+        ).select_from(source_table.join(source_info_table, source_info_table.c.id == source_table.c.id_source_info))
         return [SourceData(**src) for src in await conn.fetch_all(source_stmt)]
 
     async def update_tv_show(self, fetched_episodes: t.List[dict]) -> t.Tuple[UpdatedTvShow, ...]:
@@ -203,10 +189,10 @@ class TvShowUpdater:
             .values(fetched_episodes)
             .on_conflict_do_nothing()
             .returning(
-                episode_table.c.id, 
+                episode_table.c.id,
                 episode_table.c.id_tv_show,
                 episode_table.c.episode_number,
-                episode_table.c.season_number
+                episode_table.c.season_number,
             )
         )
         return tuple(
@@ -214,8 +200,9 @@ class TvShowUpdater:
                 id_episode=i['id'],
                 id_tv_show=i['id_tv_show'],
                 episode_number=i['episode_number'],
-                season_number=i['season_number']
-            ) for i in await self.db_session.fetch_all(stmt)
+                season_number=i['season_number'],
+            )
+            for i in await self.db_session.fetch_all(stmt)
         )
 
     async def start(self) -> t.Tuple[UpdatedTvShow, ...]:
@@ -225,13 +212,12 @@ class TvShowUpdater:
         fetched_episodes = await fetcher.start()
         new_episodes = await TvShowMemoryStorage(self.db_session).find_new_episode(fetched_episodes)
         inserted_episodes = await self.update_tv_show(new_episodes)
-        logger.info(f'В БД была добавлена информация о новых сериях', count_episode=len(inserted_episodes))
+        logger.info('В БД была добавлена информация о новых сериях', count_episode=len(inserted_episodes))
         logger.info('Обновление завершено')
         return inserted_episodes
 
 
 class UpdateService:
-
     def __init__(self):
         self._db_session = get_db()
 

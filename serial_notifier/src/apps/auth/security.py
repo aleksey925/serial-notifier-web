@@ -4,7 +4,7 @@ import bcrypt
 from asyncom import OMDatabase
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
+from jose import JWTError, jwt
 from jose.constants import ALGORITHMS
 from structlog import get_logger
 
@@ -27,11 +27,7 @@ def check_password(raw_password: str, hashed_password) -> bool:
 
 def create_access_token(data: dict, secret: str, exp_delta_min: int = 60, algorithm=ALGORITHMS.HS256) -> str:
     token_data = data.copy()
-    token_data.update(
-        {
-            "exp": datetime.utcnow() + timedelta(minutes=exp_delta_min)
-        }
-    )
+    token_data.update({"exp": datetime.utcnow() + timedelta(minutes=exp_delta_min)})
     return jwt.encode(token_data, secret, algorithm=algorithm)
 
 

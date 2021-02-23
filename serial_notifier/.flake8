@@ -4,14 +4,16 @@ exclude =
     venv,
     __pycache__,
     .pytest_cache,
-    alembic,
+    migrations,
     volumes,
     conf_files,
     tests
 ignore =
     E501,
-    I100,
-    I101
+    # Отключено для совместимости с black
+    I100
+    I101,
+    E203
 application_import_names=config,apps,db,logger,models,updater
 max-complexity = 10
 import-order-style = edited

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
+from serial_notifier_schema.tv_show import TvShowSchema, UserEpisodeReqSchema, UserEpisodeRespSchema
 
 from apps.auth.security import get_current_user
 from apps.common.exceptions import ObjectDoesNotExist
 from apps.common.schemas import ErrorResp
-from serial_notifier_schema.tv_show import TvShowSchema, UserEpisodeReqSchema, UserEpisodeRespSchema
 from apps.tv_show.service import TvShowService
 from models import User
 

@@ -5,8 +5,8 @@ from sqlalchemy import select
 
 from apps.tv_show.service import TvShowService
 from config import get_config
-from db import init_db, close_db
-from models import SourceInfo, Source, TvShow
+from db import close_db, init_db
+from models import Source, SourceInfo, TvShow
 
 USER_ID = 1
 
@@ -14,17 +14,9 @@ conf = get_config()
 
 
 async def get_source(db):
-    a = select([
-        SourceInfo.site_name,
-        Source.url,
-        TvShow.name,
-    ]).select_from(
-        Source.__table__.join(
-            SourceInfo,
-            Source.id_source_info == SourceInfo.id
-        ).join(
-            TvShow,
-            Source.id_tv_show == TvShow.id
+    a = select([SourceInfo.site_name, Source.url, TvShow.name]).select_from(
+        Source.__table__.join(SourceInfo, Source.id_source_info == SourceInfo.id).join(
+            TvShow, Source.id_tv_show == TvShow.id
         )
     )
     return tuple(dict(i) for i in await db.fetch_all(a))
