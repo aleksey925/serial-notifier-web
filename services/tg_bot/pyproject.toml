@@ -6,16 +6,18 @@ authors = ["Aleksey Petrunnik <petrunnik.a@mail.ru>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pyTelegramBotAPI = "=3.7.4"
-python-dotenv = "=0.12.0"
+pyTelegramBotAPI = "=3.7.6"
+python-dotenv = "=0.15.0"
 python-jose = { version = "=3.2.0", extras = ["cryptography"] }
 pydantic = "=1.7.3"
 structlog = "=20.1.0"
 serial-notifier-api = { path = "../libs/serial-notifier-api/" }
 
 [tool.poetry.dev-dependencies]
-pytest = "=6.2.1"
+pytest = "=6.2.2"
 pytest-env = "=0.6.2"
+pytest-cov = "=2.11.1"
+pytest-html = "=3.1.1"
 
 [build-system]
 requires = ["poetry>=1.0"]

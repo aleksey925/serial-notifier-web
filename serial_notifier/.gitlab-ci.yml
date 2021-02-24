@@ -1,0 +1,151 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  APP_SERVICE_IMAGE_NAME: $CI_REGISTRY_IMAGE/app
+  APP_SERVICE_PATH: serial_notifier
+  APP_BASE_DOCKERFILE_PATH: serial_notifier/conf_files/docker/base.Dockerfile
+  APP_DOCKERFILE_PATH: serial_notifier/conf_files/docker/Dockerfile
+
+
+##############
+### СБОРКА ###
+##############
+
+### Сборка backend
+
+# Выполняет сборку базового образа если он был изменен. Иногда базовый образ нужно пересобрать даже если содержимое
+# dockerfile не менялось (на пример были обновлены зависимости и хочется более быстрой сборки dev образа), по этому
+# предусмотрен ручной запуск сборки.
+build:app:base:
+  stage: build
+  tags:
+    - le-memese
+    - build-docker-image
+  variables:
+    IMAGE_TAG: base
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+  script:
+    - docker build
+        -f $APP_BASE_DOCKERFILE_PATH
+        -t $APP_SERVICE_IMAGE_NAME:$IMAGE_TAG .
+    - docker push $APP_SERVICE_IMAGE_NAME:$IMAGE_TAG
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - $APP_BASE_DOCKERFILE_PATH
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      allow_failure: true
+      when: manual
+
+# Собирает dev образ который используется для прогона тестов в merge request. Кроме этого образ собирается для
+# веток develop или master для того, чтобы эти образы можно было использовать во время разработки.
+build:app:dev:
+  stage: build
+  tags:
+    - le-memese
+    - build-docker-image
+  variables:
+    DOCKER_DRIVER: overlay2
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+  script:
+    - docker pull $APP_SERVICE_IMAGE_NAME:base
+    - docker pull $APP_SERVICE_IMAGE_NAME:master || true
+    - docker build
+        --build-arg "ENVIRONMENT=dev"
+        --cache-from $APP_SERVICE_IMAGE_NAME:master
+        -f $APP_DOCKERFILE_PATH
+        -t $APP_SERVICE_IMAGE_NAME:$CI_COMMIT_REF_SLUG .
+    - docker push $APP_SERVICE_IMAGE_NAME:$CI_COMMIT_REF_SLUG
+  only:
+    refs:
+      - merge_request
+      - develop
+      - master
+      - /^release-.*$/
+
+# Сборка релизного образа. Срабатывает на ветки где commit tag имеет вид "v1.0.0".
+build:app:prod:
+  stage: build
+  tags:
+    - le-memese
+    - build-docker-image
+  variables:
+    DOCKER_DRIVER: overlay2
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+  script:
+    - docker pull $APP_SERVICE_IMAGE_NAME:base
+    - docker build
+        --build-arg CURRENT_ENV=prod
+        -f $APP_DOCKERFILE_PATH
+        -t $APP_SERVICE_IMAGE_NAME:$CI_COMMIT_TAG .
+    - docker push $APP_SERVICE_IMAGE_NAME:$CI_COMMIT_TAG
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+
+
+####################
+### ТЕСТИРОВАНИЕ ###
+####################
+
+.test-general: &test-general
+  stage: test
+  image: $CI_REGISTRY_IMAGE/app:$CI_COMMIT_REF_SLUG
+  variables:
+    POSTGRES_USER: db_user
+    POSTGRES_PASSWORD: db_user
+    POSTGRES_PORT: 5432
+  services:
+    - name: postgres:12
+      alias: postgres
+
+.create-conf-files: &create-conf-files
+  before_script:
+    - echo "$APP_ENV_FILE" > $APP_SERVICE_PATH/.env
+
+test:app-black:
+  <<: *test-general
+  <<: *create-conf-files
+  script:
+    - cd $APP_SERVICE_PATH
+    - black .
+  only:
+    refs:
+      - merge_request
+      - /^release-.*$/
+
+test:app-flake8:
+  <<: *test-general
+  <<: *create-conf-files
+  script:
+    - cd $APP_SERVICE_PATH
+    - flake8 --count
+  only:
+    refs:
+      - merge_request
+      - /^release-.*$/
+
+test:app-pytest:
+  <<: *test-general
+  <<: *create-conf-files
+  script:
+    - cd $APP_SERVICE_PATH
+    - pytest --cov=src/
+             --cov-report html:coverage
+             --cov-fail-under=$APP_MIN_COVERAGE_PERCENT
+             --html coverage-report.html
+             --showlocals
+             --durations=20
+             -v
+  coverage: '/Total coverage: \d+\.\d+/'
+  only:
+    refs:
+      - master
+      - develop
+      - /^release-.*$/
+      - merge_request

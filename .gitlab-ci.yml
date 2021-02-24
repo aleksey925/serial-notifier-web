@@ -1,0 +1,11 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  LOCAL_MODE: 0
+
+include:
+  - "/serial_notifier/.gitlab-ci.yml"
+  - "/services/tg_bot/.gitlab-ci.yml"

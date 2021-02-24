@@ -17,7 +17,7 @@ databases = { version = "=0.4.1" }
 asyncom = "=0.3.1"
 alembic = "=1.4.3"
 aiohttp = { version = "=3.7.3", extras = [ "speedups" ] }
-python-dotenv = "=0.12.0"
+python-dotenv = "=0.15.0"
 bcrypt = "=3.1.7"
 python-jose = { version = "=3.2.0", extras = ["cryptography"] }
 lxml = "=4.5.0"
@@ -28,8 +28,10 @@ structlog = "=20.1.0"
 serial-notifier-schema = { path = "../libs/serial-notifier-schema/" }
 
 [tool.poetry.dev-dependencies]
-pytest = "=5.4.1"
+pytest = "=6.2.2"
 pytest-env = "=0.6.2"
+pytest-cov = "=2.11.1"
+pytest-html = "=3.1.1"
 pytest-asyncio = "=0.14.0"
 pytest-datadir = "=1.3.1"
 aioresponses = "=0.7.1"

@@ -64,6 +64,9 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+coverage/
+coverage-report.html
+assets/
 
 # Translations
 *.mo

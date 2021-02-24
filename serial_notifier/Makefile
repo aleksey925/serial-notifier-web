@@ -1,3 +1,4 @@
+SERVICE_IMAGE_NAME = registry.gitlab.com/alex925/serial-notifier-web/app
 DOCKER_COMPOSE_PROD = -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.override.yml
 AUTOFLAKE_EXCLUDE = .git,venv,volumes
 
@@ -6,17 +7,18 @@ build-base-img:
 	cd .. \
 	&& docker build \
 		-f ./serial_notifier/conf_files/docker/base.Dockerfile \
-		-t registry.gitlab.com/alex925/serial-notifier-web/app:base .
+		-t $SERVICE_IMAGE_NAME:base .
 
 push-base-img:
-	docker push registry.gitlab.com/alex925/serial-notifier-web/app:base
+	docker push $SERVICE_IMAGE_NAME:base
 
 build-dev-app-img:
+	# Образ собирается с тегом master потому, что в проекте не используется ветка develop и все фичи сразу идут в master
 	cd .. \
 	&& docker build \
 		-f ./serial_notifier/conf_files/docker/Dockerfile \
 		--build-arg CURRENT_ENV=dev \
-		-t registry.gitlab.com/alex925/serial-notifier-web/app:develop .
+		-t $SERVICE_IMAGE_NAME:master .
 
 
 run-dev:
