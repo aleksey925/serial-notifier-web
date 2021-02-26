@@ -101,27 +101,27 @@ build:tg-bot:prod:
   before_script:
     - echo "$TG_BOT_ENV_FILE" > $TG_BOT_SERVICE_PATH/.env
 
-#test:tg-bot-black:
-#  <<: *test-general
-#  <<: *create-conf-files
-#  script:
-#    - cd $TG_BOT_SERVICE_PATH
-#    - black .
-#  only:
-#    refs:
-#      - merge_request
-#      - /^release-.*$/
-#
-#test:tg-bot-flake8:
-#  <<: *test-general
-#  <<: *create-conf-files
-#  script:
-#    - cd $TG_BOT_SERVICE_PATH
-#    - flake8 --count
-#  only:
-#    refs:
-#      - merge_request
-#      - /^release-.*$/
+test:tg-bot-black:
+  <<: *test-general
+  <<: *create-conf-files
+  script:
+    - cd $TG_BOT_SERVICE_PATH
+    - black .
+  only:
+    refs:
+      - merge_request
+      - /^release-.*$/
+
+test:tg-bot-flake8:
+  <<: *test-general
+  <<: *create-conf-files
+  script:
+    - cd $TG_BOT_SERVICE_PATH
+    - flake8 --count
+  only:
+    refs:
+      - merge_request
+      - /^release-.*$/
 
 test:tg-bot-pytest:
   <<: *test-general
