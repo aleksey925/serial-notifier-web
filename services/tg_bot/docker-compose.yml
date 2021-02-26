@@ -3,7 +3,7 @@ version: '3.7'
 services:
 
   app:
-    image: registry.gitlab.com/alex925/serial-notifier-web/tg-bot:develop
+    image: registry.gitlab.com/alex925/serial-notifier-web/tg-bot:master
     restart: on-failure:10
     env_file:
       - .env
