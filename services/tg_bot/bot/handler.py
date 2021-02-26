@@ -1,22 +1,20 @@
 from functools import partial
 
+from serial_notifier_api.api import Client
+from serial_notifier_schema.tv_show import UserEpisodeReqSchema
 from structlog import get_logger
 from telebot import TeleBot
 from telebot.types import CallbackQuery
 
-from bot.utils import parse_looked_button_data
 from bot.config import get_config
-from serial_notifier_api.api import Client
-from serial_notifier_schema.tv_show import UserEpisodeReqSchema
+from bot.utils import parse_looked_button_data
 
 logger = get_logger(__name__)
 config = get_config()
 
 
 def init_handler(bot: TeleBot):
-    bot.message_handler(commands=['start'])(
-        partial(start_message_handler, bot=bot)
-    )
+    bot.message_handler(commands=['start'])(partial(start_message_handler, bot=bot))
     bot.callback_query_handler(func=lambda call: call.data.startswith('looked'))(
         partial(notification_button_click_handler, bot=bot)
     )
@@ -25,7 +23,7 @@ def init_handler(bot: TeleBot):
 def start_message_handler(message, *, bot: TeleBot):
     bot.send_message(
         message.chat.id,
-        'Привет! К сожалению, я пока мало, что умею и не могу тебя зарегистрировать. Регистрация будет сделана позже.'
+        'Привет! К сожалению, я пока мало, что умею и не могу тебя зарегистрировать. Регистрация будет сделана позже.',
     )
 
 

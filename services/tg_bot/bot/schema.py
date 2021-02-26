@@ -16,5 +16,5 @@ class LookedButtonData(BaseModel):
             id_episode=int(id_episode),
             episode_number=int(episode_number),
             season_number=int(season_number),
-            looked=bool(int(looked))
+            looked=bool(int(looked)),
         )

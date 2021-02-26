@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch, call
+from unittest.mock import Mock, call, patch
 
 import pytest
 
@@ -12,7 +12,6 @@ SEASON_NUMBER = 1
 
 
 class TestNotificationButtonClickHandler:
-
     @pytest.fixture
     def callback_id(self):
         return '362235236344'
@@ -43,8 +42,15 @@ class TestNotificationButtonClickHandler:
     @pytest.mark.parametrize('is_looked, resp_text', [(True, 'Смотрел'), (False, 'Не смотрел')])
     @patch('requests.session')
     def test_handle_valid_data__success(
-            self, session_mock, bot_mock, callback_query_mock, looked_episode_data, not_looked_episode_data,
-            callback_id, is_looked, resp_text
+        self,
+        session_mock,
+        bot_mock,
+        callback_query_mock,
+        looked_episode_data,
+        not_looked_episode_data,
+        callback_id,
+        is_looked,
+        resp_text,
     ):
         callback_data = {True: looked_episode_data, False: not_looked_episode_data}
         session_mock_inst = session_mock()
@@ -54,13 +60,13 @@ class TestNotificationButtonClickHandler:
 
         assert session_mock_inst.post.call_args == call(
             url=f'http://127.0.0.1:8080/tv_show/episode/{ID_EPISODE}/',
-            json={'id_episode': ID_EPISODE, 'looked': is_looked}
+            json={'id_episode': ID_EPISODE, 'looked': is_looked},
         )
         assert bot_mock.answer_callback_query.call_args == call(callback_id, resp_text)
 
     @patch('bot.handler.Client')
     def test_handle_not_valid_data__error_handled(
-            self, client_mock, bot_mock, callback_query_mock, looked_episode_not_valid_data, callback_id
+        self, client_mock, bot_mock, callback_query_mock, looked_episode_not_valid_data, callback_id
     ):
         callback_query_mock.data = looked_episode_not_valid_data
         client_mock_inst = client_mock()

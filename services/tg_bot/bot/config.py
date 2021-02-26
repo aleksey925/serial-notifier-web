@@ -41,11 +41,7 @@ class ProdConfig(BaseConfig):
         super().__init__()
 
 
-config = {
-    'dev': DevConfig,
-    'test': TestConfig,
-    'prod': ProdConfig
-}
+config = {'dev': DevConfig, 'test': TestConfig, 'prod': ProdConfig}
 
 
 def _get_config_gen():
