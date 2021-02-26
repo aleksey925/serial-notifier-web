@@ -1,5 +1,7 @@
 SERVICE_IMAGE_NAME = registry.gitlab.com/alex925/serial-notifier-web/tg-bot
 DOCKER_COMPOSE_PROD = -f docker-compose.yml -f docker-compose.prod.yml
+AUTOFLAKE_EXCLUDE = .git,.idea,venv,volumes
+
 
 build-base-img:
 	cd ../.. \
@@ -31,3 +33,24 @@ ps:
 
 stop:
 	docker-compose ${DOCKER_COMPOSE_PROD} -f docker-compose.dev.yml stop
+
+
+beauty_check:
+	flake8 --count && \
+	autoflake \
+		-r \
+		--remove-all-unused-imports \
+		--ignore-init-module-imports \
+		--exclude=${AUTOFLAKE_EXCLUDE} . && \
+	isort --diff . && \
+	black --diff .
+
+beautify:
+	autoflake \
+		-r \
+		--in-place \
+		--remove-all-unused-imports \
+		--ignore-init-module-imports \
+		--exclude=${AUTOFLAKE_EXCLUDE} . && \
+	isort . && \
+	black .

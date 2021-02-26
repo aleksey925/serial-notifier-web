@@ -5,9 +5,7 @@ exclude =
     venv,
     __pycache__,
     .pytest_cache,
-    migrations,
     volumes,
-    conf_files,
     tests
 ignore =
     E501,
@@ -15,6 +13,6 @@ ignore =
     I100
     I101,
     E203
-application_import_names=config,apps,db,logger,models,updater
+application_import_names=bot
 max-complexity = 10
 import-order-style = edited

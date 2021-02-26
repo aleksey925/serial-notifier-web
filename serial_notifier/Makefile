@@ -1,6 +1,6 @@
 SERVICE_IMAGE_NAME = registry.gitlab.com/alex925/serial-notifier-web/app
 DOCKER_COMPOSE_PROD = -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.override.yml
-AUTOFLAKE_EXCLUDE = .git,venv,volumes
+AUTOFLAKE_EXCLUDE = .git,.idea,venv,volumes
 
 
 build-base-img:
