@@ -26,7 +26,7 @@ run-dev:
 
 
 run:
-	docker-compose ${DOCKER_COMPOSE_PROD} -d
+	docker-compose ${DOCKER_COMPOSE_PROD} up -d
 
 ps:
 	docker-compose ${DOCKER_COMPOSE_PROD} ps

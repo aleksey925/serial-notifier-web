@@ -53,7 +53,7 @@ exclude = '''
 /(
     \.git
   | \.idea
-  | \.venv
+  | venv
   | __pycache__
   | conf_files
 )/

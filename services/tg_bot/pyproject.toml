@@ -9,7 +9,7 @@ python = "^3.8"
 pyTelegramBotAPI = "=3.7.6"
 python-dotenv = "=0.15.0"
 python-jose = { version = "=3.2.0", extras = ["cryptography"] }
-pydantic = "=1.7.3"
+pydantic = "=1.8.1"
 structlog = "=20.1.0"
 serial-notifier-api = { path = "../libs/serial-notifier-api/" }
 
@@ -34,7 +34,7 @@ exclude = '''
 /(
     \.git
   | \.idea
-  | \.venv
+  | venv
   | __pycache__
 )/
 '''

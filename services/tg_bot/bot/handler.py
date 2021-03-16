@@ -7,7 +7,7 @@ from telebot import TeleBot
 from telebot.types import CallbackQuery
 
 from bot.config import get_config
-from bot.utils import parse_looked_button_data
+from bot.utils import highlight_selected_button, parse_looked_button_data
 
 logger = get_logger(__name__)
 config = get_config()
@@ -55,6 +55,26 @@ def notification_button_click_handler(call: CallbackQuery, *, bot: TeleBot):
         return
 
     if button_data.looked:
-        bot.answer_callback_query(call.id, 'Смотрел')
+        text_button = 'Смотрел'
     else:
-        bot.answer_callback_query(call.id, 'Не смотрел')
+        text_button = 'Не смотрел'
+
+    try:
+        bot.answer_callback_query(call.id, text_button)
+    except Exception:
+        logger.warn(
+            'Не отправить информацию об успешной фиксации изменений изменений в сервисе',
+            data=call.data,
+            exc_info=True,
+        )
+
+    try:
+        bot.edit_message_reply_markup(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            reply_markup=highlight_selected_button(
+                call.message.reply_markup, text_button=text_button, emoji=config.SUCCESS_EMOJI
+            ),
+        )
+    except Exception:
+        logger.info('Не удалось изменить reply markup', exc_info=True)

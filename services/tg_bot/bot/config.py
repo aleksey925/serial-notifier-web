@@ -11,8 +11,9 @@ class BaseConfig:
         self.CURRENT_ENV = os.environ.get('CURRENT_ENV', 'dev')
         self.LOCAL_MODE = bool(int(os.environ.get('LOCAL_MODE', 1)))
 
-        # SERIAL-NOTIFIER
+        # APPLICATION
         self.API_BASE_URL = os.environ['API_BASE_URL']
+        self.SUCCESS_EMOJI = os.environ.get('SUCCESS_EMOJI', '')
 
         # JWT
         self.JWT_SECRET = os.environ['JWT_SECRET']
