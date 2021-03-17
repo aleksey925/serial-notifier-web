@@ -5,7 +5,7 @@ ENV POETRY_VERSION=1.0.5
 ENV DOCKERIZE_VERSION=v0.6.1
 
 # Предполагается, что сборка образа будет запускаться из корня проекта
-COPY ./libs /opt
+COPY ./libs /opt/libs
 WORKDIR /opt/app/
 COPY ./serial_notifier/pyproject.toml ./serial_notifier/poetry.lock /opt/app/
 

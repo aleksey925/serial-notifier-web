@@ -7,10 +7,10 @@ build-base-img:
 	cd ../.. \
 	&& docker build \
 		-f ./services/tg_bot/base.Dockerfile \
-		-t $SERVICE_IMAGE_NAME:base .
+		-t ${SERVICE_IMAGE_NAME}:base .
 
 push-base-img:
-	docker push $SERVICE_IMAGE_NAME:base
+	docker push ${SERVICE_IMAGE_NAME}:base
 
 build-dev-app-img:
 	# Образ собирается с тегом master потому, что в проекте не используется ветка develop и все фичи сразу идут в master
@@ -18,7 +18,7 @@ build-dev-app-img:
 	&& docker build \
 		--build-arg CURRENT_ENV=dev \
 		-f ./services/tg_bot/Dockerfile \
-		-t $SERVICE_IMAGE_NAME:master .
+		-t ${SERVICE_IMAGE_NAME}:master .
 
 
 run-dev:

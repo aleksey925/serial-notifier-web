@@ -7,13 +7,12 @@ RUN groupadd application \
 
 
 # Предполагается, что сборка образа будет запускаться из корня проекта
-COPY ./libs /opt
+COPY ./libs /opt/libs
 COPY ./serial_notifier/pyproject.toml ./serial_notifier/poetry.lock /opt/app/
 WORKDIR /opt/app/
 RUN /bin/bash -c 'poetry install $(test "$CURRENT_ENV" == prod && echo "--no-dev") --no-interaction --no-ansi'
 
-COPY . /opt/app/
-
+COPY ./serial_notifier /opt/app/
 
 RUN chown -R application:application /opt/app/
 USER application

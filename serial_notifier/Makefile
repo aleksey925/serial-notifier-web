@@ -7,18 +7,18 @@ build-base-img:
 	cd .. \
 	&& docker build \
 		-f ./serial_notifier/conf_files/docker/base.Dockerfile \
-		-t $SERVICE_IMAGE_NAME:base .
+		-t ${SERVICE_IMAGE_NAME}:base .
 
 push-base-img:
-	docker push $SERVICE_IMAGE_NAME:base
+	docker push ${SERVICE_IMAGE_NAME}:base
 
 build-dev-app-img:
 	# Образ собирается с тегом master потому, что в проекте не используется ветка develop и все фичи сразу идут в master
 	cd .. \
 	&& docker build \
-		-f ./serial_notifier/conf_files/docker/Dockerfile \
 		--build-arg CURRENT_ENV=dev \
-		-t $SERVICE_IMAGE_NAME:master .
+		-f ./serial_notifier/conf_files/docker/Dockerfile \
+		-t ${SERVICE_IMAGE_NAME}:master .
 
 
 run-dev:
